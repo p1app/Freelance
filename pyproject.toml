@@ -1,0 +1,17 @@
+[project]
+name = "freelance-lite"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "p1app", email = "ramazan.kazimagomedov2008@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "alembic>=1.19.1",
+    "fastapi>=0.141.1",
+    "pydantic-settings>=2.15.0",
+    "pydantic[all]>=2.13.5",
+    "sqlalchemy>=2.0.52",
+    "uvicorn>=0.52.4",
+]
