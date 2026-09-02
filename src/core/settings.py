@@ -11,6 +11,18 @@ class DatabaseConfig(ConfigBase):
 
     host: str
     port: int
-    name: SecretStr
-    user: SecretStr
-    password: SecretStr
+    name: str
+    user: str
+    password: str
+    
+    def get_db_url(self):
+        return (f"postgresql+asyncpg://{self.user}:{self.password}@"
+                f"{self.host}:{self.port}/{self.name}")
+
+class Config(BaseSettings):
+    db: DatabaseConfig = Field(default_factory=DatabaseConfig)
+
+
+config = Config()
+
+print(config.db.get_db_url())
