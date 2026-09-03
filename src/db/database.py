@@ -4,7 +4,7 @@ from sqlalchemy import Integer, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 
-from src.core.settings import config
+from core.settings import config
 
 DATABASE_URL=config.db.get_db_url()
 
