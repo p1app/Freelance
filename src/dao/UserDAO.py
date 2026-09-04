@@ -26,14 +26,28 @@ class UserDAO():
             async with async_session_maker() as session:
                 query = select(cls.model).where(cls.model.id == user_id)
                 user = session.scalar(query)
-                
+
                 return user
 
-# get_by_id
+    async def get_by_id(cls, user_email: int):
+                async with async_session_maker() as session:
+                    query = select(cls.model).where(cls.model.email == user_email)
+                    user = session.scalar(query)
+    
+                    return user
 
-# get_by_email
+    async def get_by_id(cls, user_username: int):
+                async with async_session_maker() as session:
+                    query = select(cls.model).where(cls.model.username == user_username)
+                    user = session.scalar(query)
+    
+                    return user
 
-# get_by_username
+    async def update(cls, user: UserUpdate):
+                    async with async_session_maker() as session:
+                        user = session.scalar(query)
+        
+                        return user
 
 # update 
 
