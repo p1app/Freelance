@@ -31,6 +31,7 @@ class User(Base):
     raiting: Mapped[float] = mapped_column(default=0)
     compeleted_projects: Mapped[int] = mapped_column(default=0)
     is_active: Mapped[bool] = mapped_column(default=True)
+    is_block: Mapped[bool] = mapped_column(default=False)
 
     # Проекты, где пользователь — заказчик
     projects_as_customer: Mapped[list["Project"]] = relationship(
