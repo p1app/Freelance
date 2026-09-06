@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import CheckConstraint, DateTime, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from db.database import Base
+from core.database import Base
 from db.enums import ContractStatusEnum
 
 if TYPE_CHECKING:

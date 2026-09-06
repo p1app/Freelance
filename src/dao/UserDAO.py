@@ -1,7 +1,8 @@
+from schemas.user import UserUpdate
 from sqlalchemy import select
 
 from db.models import User
-from db.database import async_session_maker
+from core.database import async_session_maker
 from db.enums import RoleEnum
 
 

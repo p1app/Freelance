@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from db.database import Base
+from core.database import Base
 from db.enums import ProposalStatusEnum
 
 if TYPE_CHECKING:

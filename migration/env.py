@@ -6,7 +6,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
-from src.db.database import Base, DATABASE_URL
+from core.database import Base, DATABASE_URL
 from src.db.models import User, Project, Proposal, Review, ChatMessage, Contract, Milestone
 
 
