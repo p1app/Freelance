@@ -19,8 +19,33 @@ class DatabaseConfig(ConfigBase):
         return (f"postgresql+asyncpg://{self.user}:{self.password}@"
                 f"{self.host}:{self.port}/{self.name}")
 
+class SecurityConfig(ConfigBase):
+
+    algorithm: str
+    secret_key: str
+    access_token_expires: int
+    refresh_token_expires: int
+    
+    model_config = SettingsConfigDict(env_prefix="sec_")
+
+class EmailConfig(ConfigBase):
+    login: str
+    password: str
+        
+    model_config = SettingsConfigDict(env_prefix="email_")
+
+class RedisConfig(ConfigBase):
+    host: str
+    port: int
+    password: str
+        
+    model_config = SettingsConfigDict(env_prefix="redis_")
+
 class Config(BaseSettings):
     db: DatabaseConfig = Field(default_factory=DatabaseConfig)
+    security: SecurityConfig = Field(default_factory=SecurityConfig)
+    email: EmailConfig = Field(default_factory=EmailConfig)
+    redis: RedisConfig = Field(default_factory=RedisConfig)
 
 
 config = Config()

@@ -1,252 +1,190 @@
-from sqlalchemy import select, func, or_
+from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
+from sqlalchemy.ext.asyncio import AsyncSession 
 
-from db.models import Project
-from db.database import async_session_maker
-from db.enums import ProjectCategoryEnum, ProjectStatusEnum
-from schemas.project import ProjectCreate, ProjectUpdate
+from db.models import Proposal
+from db.enums import ProposalStatusEnum
+from schemas.proposal import ProposalCreate, ProposalUpdate
 
 
-class ProjectDAO:
-    model = Project
+class ProposalDAO:
+    model = Proposal
 
     @classmethod
-    async def create(cls, project_data: ProjectCreate, customer_id: int):
-        async with async_session_maker() as session:
-            project = Project(
-                **project_data.model_dump(),
-                customer_id=customer_id,
-                status=ProjectStatusEnum.DRAFT,
+    async def create(cls, session: AsyncSession, proposal_data: ProposalCreate, project_id: int, freelancer_id: int):
+        proposal = Proposal(
+            **proposal_data.model_dump(),
+            project_id=project_id,
+            freelancer_id=freelancer_id,
+            status=ProposalStatusEnum.PENDING,
+        )
+        session.add(proposal)
+        await session.commit()
+        await session.refresh(proposal)
+        return proposal
+
+    @classmethod
+    async def get_by_id(cls, session: AsyncSession, proposal_id: int):
+        query = (
+            select(cls.model)
+            .where(cls.model.id == proposal_id)
+            .options(
+                selectinload(cls.model.project),
+                selectinload(cls.model.freelancer),
             )
-            session.add(project)
-            await session.commit()
-            await session.refresh(project)
-            return project
+        )
+        return await session.scalar(query)
 
     @classmethod
-    async def get_by_id(cls, project_id: int):
-        async with async_session_maker() as session:
-            query = (
-                select(cls.model)
-                .where(cls.model.id == project_id)
-                .options(
-                    selectinload(cls.model.customer),
-                    selectinload(cls.model.freelancer),
-                    selectinload(cls.model.proposals),
-                    selectinload(cls.model.contract),
-                )
-            )
-            return await session.scalar(query)
+    async def update(cls, session: AsyncSession, proposal_id: int, proposal_data: ProposalUpdate):
+        query = select(cls.model).where(
+            cls.model.id == proposal_id,
+            cls.model.status == ProposalStatusEnum.PENDING,
+        )
+        proposal = await session.scalar(query)
+
+        if proposal is None:
+            return None
+
+        update_data = proposal_data.model_dump(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(proposal, key, value)
+
+        await session.commit()
+        await session.refresh(proposal)
+        return proposal
 
     @classmethod
-    async def update(cls, project_id: int, project_data: ProjectUpdate):
-        async with async_session_maker() as session:
-            query = select(cls.model).where(cls.model.id == project_id)
-            project = await session.scalar(query)
+    async def delete(cls, session: AsyncSession, proposal_id: int):
+        query = select(cls.model).where(
+            cls.model.id == proposal_id,
+            cls.model.status.in_([ProposalStatusEnum.PENDING, ProposalStatusEnum.WITHDRAWN]),
+        )
+        proposal = await session.scalar(query)
 
-            if project is None:
-                return None
+        if proposal is None:
+            return None
 
-            update_data = project_data.model_dump(exclude_unset=True)
-            for key, value in update_data.items():
-                setattr(project, key, value)
-
-            await session.commit()
-            await session.refresh(project)
-            return project
+        await session.delete(proposal)
+        await session.commit()
+        return True
 
     @classmethod
-    async def delete(cls, project_id: int):
-        async with async_session_maker() as session:
-            query = select(cls.model).where(
-                cls.model.id == project_id,
-                cls.model.status.in_([ProjectStatusEnum.DRAFT, ProjectStatusEnum.OPEN]),
-            )
-            project = await session.scalar(query)
-
-            if project is None:
-                return None
-
-            await session.delete(project)
-            await session.commit()
-            return True
-
-    @classmethod
-    async def list(
+    async def list_by_project(
         cls,
-        category: ProjectCategoryEnum | None = None,
-        status: ProjectStatusEnum | None = None,
-        budget_min: int | None = None,
-        budget_max: int | None = None,
-        search: str | None = None,
+        session: AsyncSession,
+        project_id: int,
+        status: ProposalStatusEnum | None = None,
         page: int = 1,
         page_size: int = 20,
     ):
-        async with async_session_maker() as session:
-            query = select(cls.model)
+        query = (
+            select(cls.model)
+            .where(cls.model.project_id == project_id)
+            .options(selectinload(cls.model.freelancer))
+        )
 
-            if category:
-                query = query.where(cls.model.category == category)
-            if status:
-                query = query.where(cls.model.status == status)
-            if budget_min:
-                query = query.where(cls.model.budget >= budget_min)
-            if budget_max:
-                query = query.where(cls.model.budget <= budget_max)
-            if search:
-                query = query.where(
-                    or_(
-                        cls.model.title.ilike(f"%{search}%"),
-                        cls.model.description.ilike(f"%{search}%"),
-                    )
-                )
+        if status:
+            query = query.where(cls.model.status == status)
 
-            count_query = select(func.count()).select_from(cls.model)
-            if category:
-                count_query = count_query.where(cls.model.category == category)
-            if status:
-                count_query = count_query.where(cls.model.status == status)
-            if budget_min:
-                count_query = count_query.where(cls.model.budget >= budget_min)
-            if budget_max:
-                count_query = count_query.where(cls.model.budget <= budget_max)
-            if search:
-                count_query = count_query.where(
-                    or_(
-                        cls.model.title.ilike(f"%{search}%"),
-                        cls.model.description.ilike(f"%{search}%"),
-                    )
-                )
+        count_query = select(func.count()).where(cls.model.project_id == project_id)
+        if status:
+            count_query = count_query.where(cls.model.status == status)
 
-            total = await session.scalar(count_query)
+        total = await session.scalar(count_query)
 
-            offset = (page - 1) * page_size
-            query = query.offset(offset).limit(page_size)
+        offset = (page - 1) * page_size
+        query = query.offset(offset).limit(page_size)
 
-            result = await session.execute(query)
-            projects = result.scalars().all()
+        result = await session.execute(query)
+        proposals = result.scalars().all()
 
-            return projects, total
+        return proposals, total
 
     @classmethod
-    async def publish(cls, project_id: int):
-        async with async_session_maker() as session:
-            query = select(cls.model).where(
-                cls.model.id == project_id,
-                cls.model.status == ProjectStatusEnum.DRAFT,
-            )
-            project = await session.scalar(query)
+    async def accept(cls, session: AsyncSession, proposal_id: int):
+        query = select(cls.model).where(
+            cls.model.id == proposal_id,
+            cls.model.status == ProposalStatusEnum.PENDING,
+        )
+        proposal = await session.scalar(query)
 
-            if project is None:
-                return None
+        if proposal is None:
+            return None
 
-            project.status = ProjectStatusEnum.OPEN
-            await session.commit()
-            await session.refresh(project)
-            return project
-
-    @classmethod
-    async def cancel(cls, project_id: int):
-        async with async_session_maker() as session:
-            query = select(cls.model).where(
-                cls.model.id == project_id,
-                cls.model.status.in_([ProjectStatusEnum.OPEN, ProjectStatusEnum.IN_PROGRESS]),
-            )
-            project = await session.scalar(query)
-
-            if project is None:
-                return None
-
-            project.status = ProjectStatusEnum.CANCELLED
-            await session.commit()
-            await session.refresh(project)
-            return project
+        proposal.status = ProposalStatusEnum.ACCEPTED
+        await session.commit()
+        await session.refresh(proposal)
+        return proposal
 
     @classmethod
-    async def assign_freelancer(cls, project_id: int, freelancer_id: int):
-        async with async_session_maker() as session:
-            query = select(cls.model).where(
-                cls.model.id == project_id,
-                cls.model.status == ProjectStatusEnum.OPEN,
-            )
-            project = await session.scalar(query)
+    async def reject(cls, session: AsyncSession, proposal_id: int):
+        query = select(cls.model).where(
+            cls.model.id == proposal_id,
+            cls.model.status == ProposalStatusEnum.PENDING,
+        )
+        proposal = await session.scalar(query)
 
-            if project is None:
-                return None
+        if proposal is None:
+            return None
 
-            project.status = ProjectStatusEnum.IN_PROGRESS
-            project.freelancer_id = freelancer_id
-            await session.commit()
-            await session.refresh(project)
-            return project
+        proposal.status = ProposalStatusEnum.REJECTED
+        await session.commit()
+        await session.refresh(proposal)
+        return proposal
 
     @classmethod
-    async def get_by_customer(cls, customer_id: int, page: int = 1, page_size: int = 20):
-        async with async_session_maker() as session:
-            query = (
-                select(cls.model)
-                .where(cls.model.customer_id == customer_id)
-                .options(selectinload(cls.model.freelancer))
-            )
+    async def withdraw(cls, session: AsyncSession, proposal_id: int):
+        query = select(cls.model).where(
+            cls.model.id == proposal_id,
+            cls.model.status == ProposalStatusEnum.PENDING,
+        )
+        proposal = await session.scalar(query)
 
-            count_query = select(func.count()).where(cls.model.customer_id == customer_id)
-            total = await session.scalar(count_query)
+        if proposal is None:
+            return None
 
-            offset = (page - 1) * page_size
-            query = query.offset(offset).limit(page_size)
-
-            result = await session.execute(query)
-            projects = result.scalars().all()
-
-            return projects, total
+        proposal.status = ProposalStatusEnum.WITHDRAWN
+        await session.commit()
+        await session.refresh(proposal)
+        return proposal
 
     @classmethod
-    async def get_by_freelancer(cls, freelancer_id: int, page: int = 1, page_size: int = 20):
-        async with async_session_maker() as session:
-            query = (
-                select(cls.model)
-                .where(cls.model.freelancer_id == freelancer_id)
-                .options(selectinload(cls.model.customer))
-            )
+    async def reject_others(cls, session: AsyncSession, project_id: int, exclude_proposal_id: int):
+        query = select(cls.model).where(
+            cls.model.project_id == project_id,
+            cls.model.id != exclude_proposal_id,
+            cls.model.status == ProposalStatusEnum.PENDING,
+        )
+        proposals = await session.scalars(query)
 
-            count_query = select(func.count()).where(cls.model.freelancer_id == freelancer_id)
-            total = await session.scalar(count_query)
+        for proposal in proposals:
+            proposal.status = ProposalStatusEnum.REJECTED
 
-            offset = (page - 1) * page_size
-            query = query.offset(offset).limit(page_size)
-
-            result = await session.execute(query)
-            projects = result.scalars().all()
-
-            return projects, total
+        await session.commit()
 
     @classmethod
-    async def get_open_projects(cls, page: int = 1, page_size: int = 20):
-        async with async_session_maker() as session:
-            query = (
-                select(cls.model)
-                .where(cls.model.status == ProjectStatusEnum.OPEN)
-                .options(selectinload(cls.model.customer))
-                .order_by(cls.model.created_at.desc())
-            )
-
-            count_query = select(func.count()).where(cls.model.status == ProjectStatusEnum.OPEN)
-            total = await session.scalar(count_query)
-
-            offset = (page - 1) * page_size
-            query = query.offset(offset).limit(page_size)
-
-            result = await session.execute(query)
-            projects = result.scalars().all()
-
-            return projects, total
+    async def get_by_freelancer_and_project(cls, session: AsyncSession, freelancer_id: int, project_id: int):
+        query = select(cls.model).where(
+            cls.model.freelancer_id == freelancer_id,
+            cls.model.project_id == project_id,
+            cls.model.status != ProposalStatusEnum.WITHDRAWN,
+        )
+        return await session.scalar(query)
 
     @classmethod
-    async def check_contract_exists(cls, project_id: int) -> bool:
-        async with async_session_maker() as session:
-            query = select(cls.model).where(
-                cls.model.id == project_id,
-                cls.model.contract.isnot(None),
-            )
-            project = await session.scalar(query)
-            return project is not None
+    async def get_pending_by_project(cls, session: AsyncSession, project_id: int):
+        query = select(cls.model).where(
+            cls.model.project_id == project_id,
+            cls.model.status == ProposalStatusEnum.PENDING,
+        )
+        result = await session.execute(query)
+        return result.scalars().all()
+
+    @classmethod
+    async def get_accepted_by_project(cls, session: AsyncSession, project_id: int):
+        query = select(cls.model).where(
+            cls.model.project_id == project_id,
+            cls.model.status == ProposalStatusEnum.ACCEPTED,
+        )
+        return await session.scalar(query)
