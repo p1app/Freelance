@@ -6,7 +6,7 @@ from datetime import datetime
 
 from db.models import Contract
 from db.enums import ContractStatusEnum
-from schemas.contract import ContractCreate
+from schemas.contractSchema import ContractCreate
 
 
 class ContractDAO:

@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models import Proposal
 from db.enums import ProposalStatusEnum
-from schemas.proposal import ProposalCreate, ProposalUpdate
+from schemas.proposalSchema import ProposalCreate, ProposalUpdate
 
 
 class ProposalDAO:

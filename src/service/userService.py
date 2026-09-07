@@ -1,6 +1,6 @@
-from db.models.user import User
-from schemas.user import FreelancerFilter, UserProfileResponse, UserPublicResponse, UserStatsResponse, UserUpdate
-from schemas.pagination import PaginatedResponse
+from db.models.userModel import User
+from schemas.userSchema import FreelancerFilter, UserProfileResponse, UserPublicResponse, UserStatsResponse, UserUpdate
+from schemas.paginationSchema import PaginatedResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from dao.UserDAO import UserDAO

@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models import Project
 from db.enums import ProjectCategoryEnum, ProjectStatusEnum
-from schemas.project import ProjectCreate, ProjectUpdate
+from schemas.projectSchema import ProjectCreate, ProjectListFilter, ProjectUpdate
 
 
 class ProjectDAO:
@@ -71,54 +71,48 @@ class ProjectDAO:
     async def list(
         cls,
         session: AsyncSession,
-        category: ProjectCategoryEnum | None = None,
-        status: ProjectStatusEnum | None = None,
-        budget_min: int | None = None,
-        budget_max: int | None = None,
-        search: str | None = None,
-        page: int = 1,
-        page_size: int = 20,
+        data: ProjectListFilter
         
     ):
         query = select(cls.model)
 
-        if category:
-            query = query.where(cls.model.category == category)
-        if status:
-            query = query.where(cls.model.status == status)
-        if budget_min:
-            query = query.where(cls.model.budget >= budget_min)
-        if budget_max:
-            query = query.where(cls.model.budget <= budget_max)
-        if search:
+        if data.category:
+            query = query.where(cls.model.category == data.category)
+        if data.status:
+            query = query.where(cls.model.status == data.status)
+        if data.budget_min:
+            query = query.where(cls.model.budget >= data.budget_min)
+        if data.budget_max:
+            query = query.where(cls.model.budget <= data.budget_max)
+        if data.search:
             query = query.where(
                 or_(
-                    cls.model.title.ilike(f"%{search}%"),
-                    cls.model.description.ilike(f"%{search}%"),
+                    cls.model.title.ilike(f"%{data.search}%"),
+                    cls.model.description.ilike(f"%{data.search}%"),
                 )
             )
 
         count_query = select(func.count()).select_from(cls.model)
-        if category:
-            count_query = count_query.where(cls.model.category == category)
-        if status:
-            count_query = count_query.where(cls.model.status == status)
-        if budget_min:
-            count_query = count_query.where(cls.model.budget >= budget_min)
-        if budget_max:
-            count_query = count_query.where(cls.model.budget <= budget_max)
-        if search:
+        if data.category:
+            count_query = count_query.where(cls.model.category == data.category)
+        if data.status:
+            count_query = count_query.where(cls.model.status == data.status)
+        if data.budget_min:
+            count_query = count_query.where(cls.model.budget >= data.budget_min)
+        if data.budget_max:
+            count_query = count_query.where(cls.model.budget <= data.budget_max)
+        if data.search:
             count_query = count_query.where(
                 or_(
-                    cls.model.title.ilike(f"%{search}%"),
-                    cls.model.description.ilike(f"%{search}%"),
+                    cls.model.title.ilike(f"%{data.search}%"),
+                    cls.model.description.ilike(f"%{data.search}%"),
                 )
             )
 
         total = await session.scalar(count_query)
 
-        offset = (page - 1) * page_size
-        query = query.offset(offset).limit(page_size)
+        offset = (data.page - 1) * data.page_size
+        query = query.offset(offset).limit(data.page_size)
 
         result = await session.execute(query)
         projects = result.scalars().all()

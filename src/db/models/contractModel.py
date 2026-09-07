@@ -8,12 +8,12 @@ from core.database import Base
 from db.enums import ContractStatusEnum
 
 if TYPE_CHECKING:
-    from db.models.chat_message import ChatMessage
-    from db.models.milestone import Milestone
-    from db.models.project import Project
-    from db.models.proposal import Proposal
-    from db.models.review import Review
-    from db.models.user import User
+    from db.models.chat_messageModel import ChatMessage
+    from db.models.milestoneModel import Milestone
+    from db.models.projectModel import Project
+    from db.models.proposalModel import Proposal
+    from db.models.reviewModel import Review
+    from db.models.userModel import User
 
 
 class Contract(Base):

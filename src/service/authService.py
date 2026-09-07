@@ -3,10 +3,10 @@ from core.email_message import send_email_message
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from schemas.auth import RefreshRequest, TokenResponse, UserRegister, UserLogin
+from schemas.authSchema import TokenResponse, UserRegister, UserLogin
 from dao.UserDAO import UserDAO
 from core.exceptions import BusinessError, UnauthorizedError, ForbiddenError
-from db.models.user import User
+from db.models.userModel import User
 
 
 class AuthService:

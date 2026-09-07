@@ -2,7 +2,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models import Review
-from schemas.review import ReviewCreate, ReviewUpdate
+from schemas.reviewSchema import ReviewCreate, ReviewUpdate
 
 
 class ReviewDAO:

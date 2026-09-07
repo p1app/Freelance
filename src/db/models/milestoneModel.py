@@ -8,7 +8,7 @@ from core.database import Base
 from db.enums import MilestoneStatusEnum
 
 if TYPE_CHECKING:
-    from db.models.contract import Contract
+    from src.db.models.contractModel import Contract
 
 
 class Milestone(Base):

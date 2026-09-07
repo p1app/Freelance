@@ -1,7 +1,7 @@
 from datetime import datetime
-from pydantic import ConfigDict, Field, BaseModel, EmailStr, model_validator
+from pydantic import ConfigDict, Field, BaseModel, model_validator
 from db.enums import ProjectCategoryEnum, ProjectStatusEnum
-from schemas.proposal import ProposalResponse
+from schemas.proposalSchema import ProposalResponse
 
 class ProjectCreate(BaseModel):
     title: str = Field(min_length=5, max_length=255)

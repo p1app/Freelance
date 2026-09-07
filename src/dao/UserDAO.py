@@ -1,11 +1,12 @@
-from schemas.user import FreelancerFilter, UserUpdate
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.models import User
-from schemas.user import UserUpdate
-from schemas.auth import UserRegister
+from schemas.userSchema import UserUpdate
+from schemas.authSchema import UserRegister
+from schemas.userSchema import FreelancerFilter, UserUpdate
+
 from db.enums import RoleEnum
+from db.models import User
 
 
 class UserDAO:

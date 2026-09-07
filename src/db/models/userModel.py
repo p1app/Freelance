@@ -7,11 +7,11 @@ from core.database import Base
 from db.enums import RoleEnum
 
 if TYPE_CHECKING:
-    from db.models.project import Project
-    from db.models.proposal import Proposal
-    from db.models.contract import Contract
-    from db.models.review import Review
-    from db.models.chat_message import ChatMessage
+    from db.models.projectModel import Project
+    from db.models.proposalModel import Proposal
+    from db.models.contractModel import Contract
+    from db.models.reviewModel import Review
+    from db.models.chat_messageModel import ChatMessage
 
 
 class User(Base):

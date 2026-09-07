@@ -7,9 +7,9 @@ from core.database import Base
 from db.enums import ProposalStatusEnum
 
 if TYPE_CHECKING:
-    from db.models.contract import Contract
-    from db.models.project import Project
-    from db.models.user import User
+    from db.models.contractModel import Contract
+    from db.models.projectModel import Project
+    from db.models.userModel import User
 
 
 class Proposal(Base):

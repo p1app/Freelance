@@ -29,9 +29,6 @@ class TokenResponse(BaseModel):
     refresh_token: str
     token_type: str = Field(default="bearer")
 
-class RefreshRequest(BaseModel):
-    refresh_token: str
-
 class ErrorResponse(BaseModel):
     detail: str
     status_code: int

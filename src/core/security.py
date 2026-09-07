@@ -8,7 +8,7 @@ from dao import UserDAO
 from datetime import timedelta
 
 from db.enums import RoleEnum
-from db.models.user import User
+from db.models.userModel import User
 
 from passlib.context import CryptContext
 

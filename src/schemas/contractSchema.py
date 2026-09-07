@@ -2,8 +2,8 @@ from datetime import datetime
 
 from db.enums import ContractStatusEnum
 from pydantic import BaseModel, ConfigDict
-from schemas.milestone import MilestoneResponse
-from schemas.review import ReviewResponse
+from schemas.milestoneSchema import MilestoneResponse
+from schemas.reviewSchema import ReviewResponse
 from pydantic import BaseModel, Field, model_validator
 
 

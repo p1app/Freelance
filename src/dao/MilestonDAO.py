@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models import Milestone
 from db.enums import MilestoneStatusEnum
-from schemas.milestone import MilestoneCreate, MilestoneUpdate
+from schemas.milestoneSchema import MilestoneCreate, MilestoneUpdate
 
 
 class MilestoneDAO:

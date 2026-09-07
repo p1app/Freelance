@@ -6,8 +6,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from core.database import Base
 
 if TYPE_CHECKING:
-    from db.models.contract import Contract
-    from db.models.user import User
+    from db.models.contractModel import Contract
+    from db.models.userModel import User
 
 
 class ChatMessage(Base):

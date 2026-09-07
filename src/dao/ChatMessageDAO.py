@@ -2,7 +2,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models import ChatMessage
-from schemas.chat_message import MessageCreate
+from schemas.chat_messageSchema import MessageCreate
 
 
 class ChatMessageDAO:
