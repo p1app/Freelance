@@ -1,4 +1,4 @@
-from schemas.user import UserUpdate
+from schemas.user import FreelancerFilter, UserUpdate
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -137,34 +137,36 @@ class UserDAO:
     async def get_freelancers(
         cls,
         session: AsyncSession,
-        skills: list[str] | None = None,
-        min_rating: float | None = None,
-        page: int = 1,
-        page_size: int = 20,
+        data = FreelancerFilter
     ):
         query = select(cls.model).where(cls.model.role == RoleEnum.FREELANCER)
 
-        if min_rating is not None:
-            query = query.where(cls.model.rating >= min_rating)
+        if data.min_rating is not None:
+            query = query.where(cls.model.rating >= data.min_rating)
 
-        if skills:
+        if data.max_rating is not None:
+            query = query.where(cls.model.rating <= data.max_rating)
+
+        if data.skills:
             conditions = []
-            for skill in skills:
+            for skill in data.skills:
                 conditions.append(cls.model.skills.any(func.lower(skill)))
             query = query.where(func.or_(*conditions))
 
-        offset = (page - 1) * page_size
-        query = query.offset(offset).limit(page_size)
+        offset = (data.page - 1) * data.page_size
+        query = query.offset(offset).limit(data.page_size)
 
         result = await session.execute(query)
         users = result.scalars().all()
 
         count_query = select(func.count()).where(cls.model.role == RoleEnum.FREELANCER)
-        if min_rating is not None:
-            count_query = count_query.where(cls.model.rating >= min_rating)
-        if skills:
+        if data.min_rating is not None:
+            count_query = count_query.where(cls.model.rating >= data.min_rating)
+        if data.max_rating is not None:
+            count_query = count_query.where(cls.model.rating <= data.max_rating)
+        if data.skills:
             conditions = []
-            for skill in skills:
+            for skill in data.skills:
                 conditions.append(cls.model.skills.any(func.lower(skill)))
             count_query = count_query.where(func.or_(*conditions))
 

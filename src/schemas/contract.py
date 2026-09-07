@@ -4,6 +4,7 @@ from db.enums import ContractStatusEnum
 from pydantic import BaseModel, ConfigDict
 from schemas.milestone import MilestoneResponse
 from schemas.review import ReviewResponse
+from pydantic import BaseModel, Field, model_validator
 
 
 class ContractResponse(BaseModel):
@@ -18,7 +19,6 @@ class ContractResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-from pydantic import BaseModel, Field, model_validator
 
 
 class ContractCreate(BaseModel):
