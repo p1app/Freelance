@@ -4,7 +4,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from db.enums import ContractStatusEnum
+from db.enums import ContractRoleUserEnum, ContractStatusEnum
 from db.models import Contract
 from schemas.contractSchema import ContractCreate
 
@@ -60,15 +60,15 @@ class ContractDAO:
         cls,
         session: AsyncSession,
         user_id: int,
-        role: str,  # "customer" or "freelancer"
+        role: ContractRoleUserEnum,
         status: ContractStatusEnum | None = None,
         page: int = 1,
         page_size: int = 20,
     ):
-        if role == "customer":
+        if role == ContractRoleUserEnum.CUSTOMER:
             query = select(cls.model).where(cls.model.customer_id == user_id)
             count_query = select(func.count()).where(cls.model.customer_id == user_id)
-        else:
+        if role == ContractRoleUserEnum.FREELANCER:
             query = select(cls.model).where(cls.model.freelancer_id == user_id)
             count_query = select(func.count()).where(cls.model.freelancer_id == user_id)
 
@@ -124,7 +124,7 @@ class ContractDAO:
         cls,
         session: AsyncSession,
         user_id: int,
-        role: str,
+        role: ContractRoleUserEnum,
         page: int = 1,
         page_size: int = 20,
     ):
@@ -147,7 +147,7 @@ class ContractDAO:
         cls,
         session: AsyncSession,
         user_id: int,
-        role: str,
+        role: ContractRoleUserEnum,
         page: int = 1,
         page_size: int = 20,
     ):

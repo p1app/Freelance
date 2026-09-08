@@ -36,6 +36,11 @@ class ContractStatusEnum(str, enum.Enum):
     CANCELLED = "cancelled"
 
 
+class ContractRoleUserEnum(str, enum.Enum):
+    FREELANCER = "freelancer"
+    CUSTOMER = "customer"
+
+
 class MilestoneStatusEnum(str, enum.Enum):
     PENDING = "pending"
     COMPLETED = "completed"

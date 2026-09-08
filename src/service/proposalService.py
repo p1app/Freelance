@@ -6,9 +6,10 @@ from dao.ProjectDAO import ProjectDAO
 from dao.ProposalDAO import ProposalDAO
 from db.enums import ProjectStatusEnum, ProposalStatusEnum
 from db.models.userModel import User as UserModel
-from schemas.contractSchema import ContractResponse
+from schemas.contractSchema import ContractCreate, ContractResponse
 from schemas.paginationSchema import PaginatedResponse
 from schemas.proposalSchema import ProposalCreate, ProposalResponse, ProposalUpdate
+from service.contractService import ContractService
 from service.projectService import ProjectService
 
 
@@ -71,6 +72,9 @@ class ProposalService:
             page=page,
             page_size=page_size,
         )
+
+        if total is None:
+            raise ConflictError("total is None")
 
         validate_data = [
             ProposalResponse.model_validate(proposal) for proposal in proposals
@@ -158,9 +162,7 @@ class ProposalService:
         if contract_exists:
             raise BusinessError("This project already has a contract")
 
-        accepted_proposal = await ProposalDAO.accept(
-            session=session, proposal_id=proposal_id
-        )
+        await ProposalDAO.accept(session=session, proposal_id=proposal_id)
 
         await ProposalDAO.reject_others(
             session=session,
@@ -175,17 +177,18 @@ class ProposalService:
             freelancer_id=proposal.freelancer_id,
         )
 
-        # 4. Создаём контракт TODO
-        # contract = await ContractService.create_contract(
-        #     session=session,
-        #     proposal_id=proposal.id,
-        #     project_id=project.id,
-        #     customer_id=project.customer_id,
-        #     freelancer_id=proposal.freelancer_id,
-        #     final_price=proposal.bid_amount,
-        # )
+        contract_data = ContractCreate(
+            proposal_id=proposal_id,
+            project_id=proposal.project_id,
+            customer_id=project.customer_id,
+            freelancer_id=proposal.freelancer_id,
+            final_price=proposal.bid_amount,
+        )
 
-        return ProposalResponse.model_validate(accepted_proposal)
+        contract = await ContractService.create_contract(
+            session=session, contract_data=contract_data
+        )
+        return contract
 
     @classmethod
     async def reject_proposal(
