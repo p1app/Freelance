@@ -1,7 +1,10 @@
 from datetime import datetime
-from pydantic import ConfigDict, Field, BaseModel, model_validator
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
 from db.enums import ProjectCategoryEnum, ProjectStatusEnum
 from schemas.proposalSchema import ProposalResponse
+
 
 class ProjectCreate(BaseModel):
     title: str = Field(min_length=5, max_length=255)
@@ -11,12 +14,13 @@ class ProjectCreate(BaseModel):
     category: ProjectCategoryEnum
 
     @model_validator(mode="after")
-    def validate_deadline(self) -> "ProjectCreate":
-        if self.deadline < datetime.now():
+    def validate_deadline(self) -> ProjectCreate:
+        if self.deadline < datetime.now():  # noqa: DTZ005
             raise ValueError(
-                f"Время в поле deadline не должно быть раньше настоящего времени"
+                "Время в поле deadline не должно быть раньше настоящего времени"
             )
         return self
+
 
 class ProjectUpdate(BaseModel):
     title: str | None = Field(min_length=5, max_length=255)
@@ -26,33 +30,35 @@ class ProjectUpdate(BaseModel):
     category: ProjectCategoryEnum | None
 
     @model_validator(mode="after")
-    def check_at_least_one_field(self) -> "ProjectUpdate":
+    def check_at_least_one_field(self) -> ProjectUpdate:
         data = self.model_dump(exclude_unset=True)
         if all(value is None for value in data.values()):
             raise ValueError("Хотя бы одно поле должно быть передано")
         return self
 
     @model_validator(mode="after")
-    def validate_deadline(self) -> "ProjectUpdate":
-        if self.deadline is not None and self.deadline < datetime.now():
+    def validate_deadline(self) -> ProjectUpdate:
+        if self.deadline is not None and self.deadline < datetime.now():  # noqa: DTZ005
             raise ValueError(
-                f"Время в поле deadline не должно быть раньше чем настоящее время"
+                "Время в поле deadline не должно быть раньше чем настоящее время"
             )
         return self
 
+
 class ProjectResponse(BaseModel):
     id: int
-    title: str 
-    description: str 
-    budget: int 
-    deadline: datetime 
-    category: ProjectCategoryEnum 
+    title: str
+    description: str
+    budget: int
+    deadline: datetime
+    category: ProjectCategoryEnum
     status: ProjectStatusEnum
     customer_id: int
     freelancer_id: int | None
     created_at: datetime
 
-    model_config=ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True)
+
 
 class ProjectDetailResponse(ProjectResponse):
     customer_name: str
@@ -61,10 +67,11 @@ class ProjectDetailResponse(ProjectResponse):
     proposals: list[ProposalResponse] | None
 
     @model_validator(mode="after")
-    def freelancer_name_validate(self) -> "ProjectDetailResponse":
+    def freelancer_name_validate(self) -> ProjectDetailResponse:
         if self.freelancer_id is None:
             self.freelancer_name = None
         return self
+
 
 class ProjectListFilter(BaseModel):
     category: ProjectCategoryEnum | None
@@ -77,9 +84,12 @@ class ProjectListFilter(BaseModel):
 
     @model_validator(mode="after")
     def budget_range_validate(self):
-        if self.budget_min is not None and self.budget_max is not None:
-            if self.budget_max < self.budget_min:
-                raise ValueError("budget_max не может быть меньше budget_min")
+        if (
+            self.budget_min is not None
+            and self.budget_max is not None
+            and self.budget_max < self.budget_min
+        ):
+            raise ValueError("budget_max не может быть меньше budget_min")
         return self
 
 

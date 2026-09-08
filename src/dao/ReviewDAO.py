@@ -1,4 +1,4 @@
-from sqlalchemy import select, func
+from sqlalchemy import func, select  # noqa: N999
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models import Review
@@ -9,7 +9,14 @@ class ReviewDAO:
     model = Review
 
     @classmethod
-    async def create(cls, session: AsyncSession, review_data: ReviewCreate, contract_id: int, from_user_id: int, to_user_id: int):
+    async def create(
+        cls,
+        session: AsyncSession,
+        review_data: ReviewCreate,
+        contract_id: int,
+        from_user_id: int,
+        to_user_id: int,
+    ):
         review = Review(
             **review_data.model_dump(),
             contract_id=contract_id,
@@ -27,7 +34,9 @@ class ReviewDAO:
         return await session.scalar(query)
 
     @classmethod
-    async def update(cls, session: AsyncSession, review_id: int, review_data: ReviewUpdate):
+    async def update(
+        cls, session: AsyncSession, review_id: int, review_data: ReviewUpdate
+    ):
         query = select(cls.model).where(cls.model.id == review_id)
         review = await session.scalar(query)
 
@@ -93,7 +102,9 @@ class ReviewDAO:
         total = await session.scalar(count_query)
 
         # Средний рейтинг
-        avg_query = select(func.avg(cls.model.rating)).where(cls.model.to_user_id == user_id)
+        avg_query = select(func.avg(cls.model.rating)).where(
+            cls.model.to_user_id == user_id
+        )
         avg_rating = await session.scalar(avg_query)
 
         # Распределение по рейтингу
@@ -119,6 +130,8 @@ class ReviewDAO:
 
     @classmethod
     async def get_average_rating(cls, session: AsyncSession, user_id: int) -> float:
-        query = select(func.avg(cls.model.rating)).where(cls.model.to_user_id == user_id)
+        query = select(func.avg(cls.model.rating)).where(
+            cls.model.to_user_id == user_id
+        )
         avg = await session.scalar(query)
         return avg or 0.0

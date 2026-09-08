@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime  # noqa: N999
 from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, String
@@ -8,9 +8,9 @@ from core.database import Base
 from db.enums import ProjectCategoryEnum, ProjectStatusEnum
 
 if TYPE_CHECKING:
-    from db.models.userModel import User
-    from db.models.proposalModel import Proposal
     from db.models.contractModel import Contract
+    from db.models.proposalModel import Proposal
+    from db.models.userModel import User
 
 
 class Project(Base):
@@ -36,35 +36,35 @@ class Project(Base):
 
     # Связи
 
-    customer: Mapped["User"] = relationship(
+    customer: Mapped[User] = relationship(
         "User",
         foreign_keys="Project.customer_id",
         back_populates="projects_as_customer",
-        lazy="selectin"
+        lazy="selectin",
     )
 
-    freelancer: Mapped["User | None"] = relationship(
+    freelancer: Mapped[User | None] = relationship(
         "User",
         foreign_keys="Project.freelancer_id",
         back_populates="projects_as_freelancer",
-        lazy="selectin"
+        lazy="selectin",
     )
 
-    proposals: Mapped[list["Proposal"]] = relationship(
+    proposals: Mapped[list[Proposal]] = relationship(
         "Proposal",
         foreign_keys="Proposal.project_id",
         back_populates="project",
         cascade="all, delete-orphan",
-        lazy="selectin"
+        lazy="selectin",
     )
 
-    contract: Mapped["Contract | None"] = relationship(
+    contract: Mapped[Contract | None] = relationship(
         "Contract",
         foreign_keys="Contract.project_id",
         back_populates="project",
         cascade="all, delete-orphan",
         uselist=False,
-        lazy="selectin"
+        lazy="selectin",
     )
 
     # Валидация

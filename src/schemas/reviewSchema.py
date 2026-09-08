@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
@@ -12,7 +13,7 @@ class ReviewUpdate(BaseModel):
     comment: str | None = Field(default=None, max_length=250)
 
     @model_validator(mode="after")
-    def check_at_least_one_field(self) -> "ReviewUpdate":
+    def check_at_least_one_field(self) -> ReviewUpdate:
         data = self.model_dump(exclude_unset=True)
         if all(value is None for value in data.values()):
             raise ValueError("Хотя бы одно поле должно быть передано")
@@ -35,6 +36,6 @@ class ReviewResponse(BaseModel):
 class ReviewStatsResponse(BaseModel):
     average_rating: float
     total_reviews: int
-    rating_distribution: dict[int, int] 
+    rating_distribution: dict[int, int]
 
     model_config = ConfigDict(from_attributes=True)

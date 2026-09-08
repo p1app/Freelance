@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime  # noqa: N999
 from typing import TYPE_CHECKING
 
 from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String, Text
@@ -23,9 +23,7 @@ class Milestone(Base):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    due_date: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
+    due_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     status: Mapped[MilestoneStatusEnum] = mapped_column(
         default=MilestoneStatusEnum.PENDING,
@@ -33,7 +31,7 @@ class Milestone(Base):
     )
 
     # Связи
-    contract: Mapped["Contract"] = relationship(
+    contract: Mapped[Contract] = relationship(
         "Contract",
         foreign_keys="Milestone.contract_id",
         back_populates="milestones",
@@ -42,7 +40,7 @@ class Milestone(Base):
 
     @validates("due_date")
     def validate_due_date(self, key: str, due_date: datetime) -> datetime:
-        if due_date < datetime.now():
+        if due_date < datetime.now():  # noqa: DTZ005
             raise ValueError("due_date не может быть в прошлом")
         return due_date
 
@@ -54,7 +52,6 @@ class Milestone(Base):
 
     __table_args__ = (
         CheckConstraint(
-            "due_date > CURRENT_TIMESTAMP",
-            name="ck_milestone_due_date_future"
+            "due_date > CURRENT_TIMESTAMP", name="ck_milestone_due_date_future"
         ),
     )

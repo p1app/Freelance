@@ -1,5 +1,7 @@
 from datetime import datetime
-from pydantic import ConfigDict, Field, BaseModel, EmailStr, model_validator
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
+
 from db.enums import RoleEnum
 
 
@@ -9,7 +11,7 @@ class UserUpdate(BaseModel):
     skills: list[str] | None = Field(default=None)
 
     @model_validator(mode="after")
-    def check_at_least_one_field(self) -> "UserUpdate":
+    def check_at_least_one_field(self) -> UserUpdate:
         data = self.model_dump(exclude_unset=True)
         if all(value is None for value in data.values()):
             raise ValueError("Хотя бы одно поле должно быть передано")
@@ -60,4 +62,3 @@ class UserProfileResponse(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
-    

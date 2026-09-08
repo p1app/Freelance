@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime  # noqa: N999
 from typing import TYPE_CHECKING
 
 from sqlalchemy import CheckConstraint, DateTime, ForeignKey, func
@@ -57,49 +57,49 @@ class Contract(Base):
     )
 
     # Связи
-    project: Mapped["Project"] = relationship(
+    project: Mapped[Project] = relationship(
         "Project",
         foreign_keys="Contract.project_id",
         back_populates="contract",
         lazy="selectin",
     )
 
-    proposal: Mapped["Proposal"] = relationship(
+    proposal: Mapped[Proposal] = relationship(
         "Proposal",
         foreign_keys="Contract.proposal_id",
         back_populates="contract",
         lazy="selectin",
     )
 
-    customer: Mapped["User"] = relationship(
+    customer: Mapped[User] = relationship(
         "User",
         foreign_keys="Contract.customer_id",
         back_populates="contracts_as_customer",
         lazy="selectin",
     )
 
-    freelancer: Mapped["User"] = relationship(
+    freelancer: Mapped[User] = relationship(
         "User",
         foreign_keys="Contract.freelancer_id",
         back_populates="contracts_as_freelancer",
         lazy="selectin",
     )
 
-    reviews: Mapped[list["Review"]] = relationship(
+    reviews: Mapped[list[Review]] = relationship(
         "Review",
         back_populates="contract",
         cascade="all, delete-orphan",
         lazy="selectin",
     )
 
-    messages: Mapped[list["ChatMessage"]] = relationship(
+    messages: Mapped[list[ChatMessage]] = relationship(
         "ChatMessage",
         back_populates="contract",
         cascade="all, delete-orphan",
         lazy="selectin",
     )
 
-    milestones: Mapped[list["Milestone"]] = relationship(
+    milestones: Mapped[list[Milestone]] = relationship(
         "Milestone",
         back_populates="contract",
         cascade="all, delete-orphan",
@@ -108,15 +108,20 @@ class Contract(Base):
 
     @validates("customer_id", "freelancer_id")
     def validate_users(self, key: str, value: int) -> int:
-        if key == "customer_id" and hasattr(self, "freelancer_id") and self.freelancer_id == value:
+        if (
+            key == "customer_id"
+            and hasattr(self, "freelancer_id")
+            and self.freelancer_id == value
+        ):
             raise ValueError("customer_id и freelancer_id должны быть разными")
-        if key == "freelancer_id" and hasattr(self, "customer_id") and self.customer_id == value:
+        if (
+            key == "freelancer_id"
+            and hasattr(self, "customer_id")
+            and self.customer_id == value
+        ):
             raise ValueError("customer_id и freelancer_id должны быть разными")
         return value
 
     __table_args__ = (
-        CheckConstraint(
-            "final_price > 0",
-            name="ck_contract_final_price_positive"
-        ),
+        CheckConstraint("final_price > 0", name="ck_contract_final_price_positive"),
     )

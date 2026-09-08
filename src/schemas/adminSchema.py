@@ -1,7 +1,8 @@
 from datetime import datetime
 
-from db.enums import ProjectStatusEnum, RoleEnum
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
+from db.enums import ProjectStatusEnum, RoleEnum
 
 
 class AdminUserResponse(BaseModel):
@@ -15,6 +16,7 @@ class AdminUserResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class AdminProjectResponse(BaseModel):
     id: int
     title: str
@@ -24,6 +26,7 @@ class AdminProjectResponse(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class PlatformStatsResponse(BaseModel):
     total_users: int

@@ -1,7 +1,8 @@
 from datetime import datetime
 
-from db.enums import MilestoneStatusEnum
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from db.enums import MilestoneStatusEnum
 
 
 class MilestoneCreate(BaseModel):
@@ -10,12 +11,13 @@ class MilestoneCreate(BaseModel):
     due_date: datetime
 
     @model_validator(mode="after")
-    def validate_due_date(self) -> "MilestoneCreate":
-        if self.due_date < datetime.now():
+    def validate_due_date(self) -> MilestoneCreate:
+        if self.due_date < datetime.now():  # noqa: DTZ005
             raise ValueError(
-                f"Время в поле due_date не должно быть раньше настоящего времени"
+                "Время в поле due_date не должно быть раньше настоящего времени"
             )
         return self
+
 
 class MilestoneUpdate(BaseModel):
     title: str | None = Field(min_length=5, max_length=50)
@@ -23,19 +25,20 @@ class MilestoneUpdate(BaseModel):
     due_date: datetime | None
 
     @model_validator(mode="after")
-    def check_at_least_one_field(self) -> "MilestoneUpdate":
+    def check_at_least_one_field(self) -> MilestoneUpdate:
         data = self.model_dump(exclude_unset=True)
         if all(value is None for value in data.values()):
             raise ValueError("Хотя бы одно поле должно быть передано")
         return self
 
     @model_validator(mode="after")
-    def validate_due_date(self) -> "MilestoneUpdate":
-        if self.due_date is not None and self.due_date < datetime.now():
+    def validate_due_date(self) -> MilestoneUpdate:
+        if self.due_date is not None and self.due_date < datetime.now():  # noqa: DTZ005
             raise ValueError(
-                f"Время в поле due_date не должно быть раньше настоящего времени"
+                "Время в поле due_date не должно быть раньше настоящего времени"
             )
         return self
+
 
 class MilestoneResponse(BaseModel):
     id: int

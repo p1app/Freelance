@@ -1,9 +1,9 @@
-from sqlalchemy import select, func, or_
-from sqlalchemy.orm import selectinload
+from sqlalchemy import func, or_, select  # noqa: N999
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
+from db.enums import ProjectStatusEnum
 from db.models import Project
-from db.enums import ProjectCategoryEnum, ProjectStatusEnum
 from schemas.projectSchema import ProjectCreate, ProjectListFilter, ProjectUpdate
 
 
@@ -11,7 +11,9 @@ class ProjectDAO:
     model = Project
 
     @classmethod
-    async def create(cls, project_data: ProjectCreate, customer_id: int, session: AsyncSession):
+    async def create(
+        cls, project_data: ProjectCreate, customer_id: int, session: AsyncSession
+    ):
         project = Project(
             **project_data.model_dump(),
             customer_id=customer_id,
@@ -37,7 +39,9 @@ class ProjectDAO:
         return await session.scalar(query)
 
     @classmethod
-    async def update(cls, project_id: int, project_data: ProjectUpdate, session: AsyncSession):
+    async def update(
+        cls, project_id: int, project_data: ProjectUpdate, session: AsyncSession
+    ):
         query = select(cls.model).where(cls.model.id == project_id)
         project = await session.scalar(query)
 
@@ -68,12 +72,7 @@ class ProjectDAO:
         return True
 
     @classmethod
-    async def list(
-        cls,
-        session: AsyncSession,
-        data: ProjectListFilter
-        
-    ):
+    async def list(cls, session: AsyncSession, data: ProjectListFilter):
         query = select(cls.model)
 
         if data.category:
@@ -139,7 +138,9 @@ class ProjectDAO:
     async def cancel(cls, project_id: int, session: AsyncSession):
         query = select(cls.model).where(
             cls.model.id == project_id,
-            cls.model.status.in_([ProjectStatusEnum.OPEN, ProjectStatusEnum.IN_PROGRESS]),
+            cls.model.status.in_(
+                [ProjectStatusEnum.OPEN, ProjectStatusEnum.IN_PROGRESS]
+            ),
         )
         project = await session.scalar(query)
 
@@ -152,7 +153,9 @@ class ProjectDAO:
         return project
 
     @classmethod
-    async def assign_freelancer(cls, project_id: int, freelancer_id: int, session: AsyncSession):
+    async def assign_freelancer(
+        cls, project_id: int, freelancer_id: int, session: AsyncSession
+    ):
         query = select(cls.model).where(
             cls.model.id == project_id,
             cls.model.status == ProjectStatusEnum.OPEN,
@@ -169,7 +172,9 @@ class ProjectDAO:
         return project
 
     @classmethod
-    async def get_by_customer(cls, session: AsyncSession, customer_id: int, page: int = 1, page_size: int = 20):
+    async def get_by_customer(
+        cls, session: AsyncSession, customer_id: int, page: int = 1, page_size: int = 20
+    ):
         query = (
             select(cls.model)
             .where(cls.model.customer_id == customer_id)
@@ -188,14 +193,22 @@ class ProjectDAO:
         return projects, total
 
     @classmethod
-    async def get_by_freelancer(cls, session: AsyncSession, freelancer_id: int, page: int = 1, page_size: int = 20):
+    async def get_by_freelancer(
+        cls,
+        session: AsyncSession,
+        freelancer_id: int,
+        page: int = 1,
+        page_size: int = 20,
+    ):
         query = (
             select(cls.model)
             .where(cls.model.freelancer_id == freelancer_id)
             .options(selectinload(cls.model.customer))
         )
 
-        count_query = select(func.count()).where(cls.model.freelancer_id == freelancer_id)
+        count_query = select(func.count()).where(
+            cls.model.freelancer_id == freelancer_id
+        )
         total = await session.scalar(count_query)
 
         offset = (page - 1) * page_size
@@ -207,7 +220,9 @@ class ProjectDAO:
         return projects, total
 
     @classmethod
-    async def get_open_projects(cls, session: AsyncSession, page: int = 1, page_size: int = 20):
+    async def get_open_projects(
+        cls, session: AsyncSession, page: int = 1, page_size: int = 20
+    ):
         query = (
             select(cls.model)
             .where(cls.model.status == ProjectStatusEnum.OPEN)
@@ -215,7 +230,9 @@ class ProjectDAO:
             .order_by(cls.model.created_at.desc())
         )
 
-        count_query = select(func.count()).where(cls.model.status == ProjectStatusEnum.OPEN)
+        count_query = select(func.count()).where(
+            cls.model.status == ProjectStatusEnum.OPEN
+        )
         total = await session.scalar(count_query)
 
         offset = (page - 1) * page_size
@@ -227,7 +244,9 @@ class ProjectDAO:
         return projects, total
 
     @classmethod
-    async def check_contract_exists(cls, project_id: int, session: AsyncSession) -> bool:
+    async def check_contract_exists(
+        cls, project_id: int, session: AsyncSession
+    ) -> bool:
         query = select(cls.model).where(
             cls.model.id == project_id,
             cls.model.contract.isnot(None),

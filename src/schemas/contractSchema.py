@@ -1,10 +1,10 @@
 from datetime import datetime
 
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
 from db.enums import ContractStatusEnum
-from pydantic import BaseModel, ConfigDict
 from schemas.milestoneSchema import MilestoneResponse
 from schemas.reviewSchema import ReviewResponse
-from pydantic import BaseModel, Field, model_validator
 
 
 class ContractResponse(BaseModel):
@@ -20,7 +20,6 @@ class ContractResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-
 class ContractCreate(BaseModel):
     proposal_id: int
     project_id: int
@@ -29,10 +28,11 @@ class ContractCreate(BaseModel):
     final_price: int = Field(gt=0)
 
     @model_validator(mode="after")
-    def validate_users_different(self) -> "ContractCreate":
+    def validate_users_different(self) -> ContractCreate:
         if self.customer_id == self.freelancer_id:
             raise ValueError("customer_id и freelancer_id должны быть разными")
         return self
+
 
 class ContractDetailResponse(ContractResponse):
     project_title: str

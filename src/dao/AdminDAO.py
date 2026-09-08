@@ -1,14 +1,20 @@
-from sqlalchemy import select, func
+from sqlalchemy import func, select  # noqa: N999
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.models import User, Project
-from db.enums import RoleEnum, ProjectStatusEnum, ContractStatusEnum
+from db.enums import ContractStatusEnum, ProjectStatusEnum, RoleEnum
+from db.models import Project, User
 
 
 class AdminDAO:
     @classmethod
-    async def list_users(cls, session: AsyncSession,role: RoleEnum | None = None, 
-                         is_active: bool | None = None, page: int = 1, page_size: int = 20):
+    async def list_users(
+        cls,
+        session: AsyncSession,
+        role: RoleEnum | None = None,
+        is_active: bool | None = None,
+        page: int = 1,
+        page_size: int = 20,
+    ):
         query = select(User)
 
         if role:
@@ -63,7 +69,13 @@ class AdminDAO:
         return True
 
     @classmethod
-    async def list_projects(cls, session: AsyncSession,status: ProjectStatusEnum | None = None, page: int = 1, page_size: int = 20):
+    async def list_projects(
+        cls,
+        session: AsyncSession,
+        status: ProjectStatusEnum | None = None,
+        page: int = 1,
+        page_size: int = 20,
+    ):
         query = select(Project)
 
         if status:
@@ -100,7 +112,9 @@ class AdminDAO:
         stats = {}
 
         # Пользователи
-        stats["total_users"] = await session.scalar(select(func.count()).select_from(User))
+        stats["total_users"] = await session.scalar(
+            select(func.count()).select_from(User)
+        )
         stats["clients_count"] = await session.scalar(
             select(func.count()).where(User.role == RoleEnum.CLIENT)
         )
@@ -109,7 +123,9 @@ class AdminDAO:
         )
 
         # Проекты
-        stats["total_projects"] = await session.scalar(select(func.count()).select_from(Project))
+        stats["total_projects"] = await session.scalar(
+            select(func.count()).select_from(Project)
+        )
         stats["open_projects"] = await session.scalar(
             select(func.count()).where(Project.status == ProjectStatusEnum.OPEN)
         )
@@ -122,7 +138,10 @@ class AdminDAO:
 
         # Контракты
         from db.models import Contract
-        stats["total_contracts"] = await session.scalar(select(func.count()).select_from(Contract))
+
+        stats["total_contracts"] = await session.scalar(
+            select(func.count()).select_from(Contract)
+        )
         stats["active_contracts"] = await session.scalar(
             select(func.count()).where(Contract.status == ContractStatusEnum.ACTIVE)
         )

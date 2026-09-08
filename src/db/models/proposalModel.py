@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING  # noqa: N999
 
 from sqlalchemy import ForeignKey, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
@@ -42,21 +42,21 @@ class Proposal(Base):
     )
 
     # Связи
-    project: Mapped["Project"] = relationship(
+    project: Mapped[Project] = relationship(
         "Project",
         foreign_keys="Proposal.project_id",
         back_populates="proposals",
         lazy="selectin",
     )
 
-    freelancer: Mapped["User"] = relationship(
+    freelancer: Mapped[User] = relationship(
         "User",
         foreign_keys="Proposal.freelancer_id",
         back_populates="proposals",
         lazy="selectin",
     )
 
-    contract: Mapped["Contract | None"] = relationship(
+    contract: Mapped[Contract | None] = relationship(
         "Contract",
         foreign_keys="Proposal.contract_id",
         back_populates="proposal",
@@ -74,7 +74,6 @@ class Proposal(Base):
 
     __table_args__ = (
         UniqueConstraint(
-            "freelancer_id", "project_id",
-            name="uq_proposal_freelancer_project"
+            "freelancer_id", "project_id", name="uq_proposal_freelancer_project"
         ),
     )

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING  # noqa: N999
 
 from sqlalchemy import Boolean, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
@@ -29,14 +29,14 @@ class ChatMessage(Base):
     is_read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # Связи
-    contract: Mapped["Contract"] = relationship(
+    contract: Mapped[Contract] = relationship(
         "Contract",
         foreign_keys="ChatMessage.contract_id",
         back_populates="messages",
         lazy="selectin",
     )
 
-    sender: Mapped["User"] = relationship(
+    sender: Mapped[User] = relationship(
         "User",
         foreign_keys="ChatMessage.sender_id",
         back_populates="chat_messages",

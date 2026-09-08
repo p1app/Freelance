@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING  # noqa: N999
 
 from sqlalchemy import ARRAY, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -7,23 +7,25 @@ from core.database import Base
 from db.enums import RoleEnum
 
 if TYPE_CHECKING:
+    from db.models.chat_messageModel import ChatMessage
+    from db.models.contractModel import Contract
     from db.models.projectModel import Project
     from db.models.proposalModel import Proposal
-    from db.models.contractModel import Contract
     from db.models.reviewModel import Review
-    from db.models.chat_messageModel import ChatMessage
 
 
 class User(Base):
     __tablename__ = "users"
 
-    email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
-    username: Mapped[str] = mapped_column(String(100), unique=True, index=True, nullable=False)
+    email: Mapped[str] = mapped_column(
+        String(255), unique=True, index=True, nullable=False
+    )
+    username: Mapped[str] = mapped_column(
+        String(100), unique=True, index=True, nullable=False
+    )
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
 
-    role: Mapped[RoleEnum] = mapped_column(
-        default = RoleEnum.CLIENT, nullable=False
-    )
+    role: Mapped[RoleEnum] = mapped_column(default=RoleEnum.CLIENT, nullable=False)
 
     fullname: Mapped[str] = mapped_column(String(255), nullable=False)
     bio: Mapped[str | None] = mapped_column(nullable=True)
@@ -33,7 +35,7 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(default=True)
 
     # Проекты, где пользователь — заказчик
-    projects_as_customer: Mapped[list["Project"]] = relationship(
+    projects_as_customer: Mapped[list[Project]] = relationship(
         "Project",
         foreign_keys="Project.customer_id",
         back_populates="customer",
@@ -41,7 +43,7 @@ class User(Base):
     )
 
     # Проекты, где пользователь — исполнитель
-    projects_as_freelancer: Mapped[list["Project"]] = relationship(
+    projects_as_freelancer: Mapped[list[Project]] = relationship(
         "Project",
         foreign_keys="Project.freelancer_id",
         back_populates="freelancer",
@@ -49,7 +51,7 @@ class User(Base):
     )
 
     # Отклики пользователя (как фрилансер)
-    proposals: Mapped[list["Proposal"]] = relationship(
+    proposals: Mapped[list[Proposal]] = relationship(
         "Proposal",
         foreign_keys="Proposal.freelancer_id",
         back_populates="freelancer",
@@ -57,7 +59,7 @@ class User(Base):
     )
 
     # Контракты, где пользователь — заказчик
-    contracts_as_customer: Mapped[list["Contract"]] = relationship(
+    contracts_as_customer: Mapped[list[Contract]] = relationship(
         "Contract",
         foreign_keys="Contract.customer_id",
         back_populates="customer",
@@ -65,7 +67,7 @@ class User(Base):
     )
 
     # Контракты, где пользователь — исполнитель
-    contracts_as_freelancer: Mapped[list["Contract"]] = relationship(
+    contracts_as_freelancer: Mapped[list[Contract]] = relationship(
         "Contract",
         foreign_keys="Contract.freelancer_id",
         back_populates="freelancer",
@@ -73,7 +75,7 @@ class User(Base):
     )
 
     # Отзывы, которые пользователь оставил
-    reviews_from: Mapped[list["Review"]] = relationship(
+    reviews_from: Mapped[list[Review]] = relationship(
         "Review",
         foreign_keys="Review.from_user_id",
         back_populates="from_user",
@@ -81,7 +83,7 @@ class User(Base):
     )
 
     # Отзывы, которые пользователь получил
-    reviews_to: Mapped[list["Review"]] = relationship(
+    reviews_to: Mapped[list[Review]] = relationship(
         "Review",
         foreign_keys="Review.to_user_id",
         back_populates="to_user",
@@ -89,7 +91,7 @@ class User(Base):
     )
 
     # Сообщения, которые пользователь отправил
-    chat_messages: Mapped[list["ChatMessage"]] = relationship(
+    chat_messages: Mapped[list[ChatMessage]] = relationship(
         "ChatMessage",
         foreign_keys="ChatMessage.sender_id",
         back_populates="sender",

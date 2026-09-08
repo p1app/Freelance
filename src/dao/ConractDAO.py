@@ -1,11 +1,11 @@
-from sqlalchemy import select, func
-from sqlalchemy.orm import selectinload
+from datetime import datetime  # noqa: N999
+
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from datetime import datetime
-
-from db.models import Contract
 from db.enums import ContractStatusEnum
+from db.models import Contract
 from schemas.contractSchema import ContractCreate
 
 
@@ -17,7 +17,7 @@ class ContractDAO:
         contract = Contract(
             **contract_data.model_dump(),
             status=ContractStatusEnum.ACTIVE,
-            start_date=datetime.now(),
+            start_date=datetime.now(),  # noqa: DTZ005
         )
         session.add(contract)
         await session.commit()
@@ -64,7 +64,6 @@ class ContractDAO:
         status: ContractStatusEnum | None = None,
         page: int = 1,
         page_size: int = 20,
-        
     ):
         if role == "customer":
             query = select(cls.model).where(cls.model.customer_id == user_id)
@@ -99,7 +98,7 @@ class ContractDAO:
             return None
 
         contract.status = ContractStatusEnum.COMPLETED
-        contract.end_date = datetime.now()
+        contract.end_date = datetime.now()  # noqa: DTZ005
         await session.commit()
         await session.refresh(contract)
         return contract
@@ -121,14 +120,21 @@ class ContractDAO:
         return contract
 
     @classmethod
-    async def get_active_by_user(cls, session: AsyncSession,user_id: int, role: str, page: int = 1, page_size: int = 20):
+    async def get_active_by_user(
+        cls,
+        session: AsyncSession,
+        user_id: int,
+        role: str,
+        page: int = 1,
+        page_size: int = 20,
+    ):
         return await cls.list_by_user(
             user_id=user_id,
             role=role,
             status=ContractStatusEnum.ACTIVE,
             page=page,
             page_size=page_size,
-            session=session
+            session=session,
         )
 
     @classmethod
@@ -137,26 +143,33 @@ class ContractDAO:
         return await session.scalar(query)
 
     @classmethod
-    async def get_completed_by_user(cls, session: AsyncSession, user_id: int, role: str, page: int = 1, page_size: int = 20):
+    async def get_completed_by_user(
+        cls,
+        session: AsyncSession,
+        user_id: int,
+        role: str,
+        page: int = 1,
+        page_size: int = 20,
+    ):
         return await cls.list_by_user(
             user_id=user_id,
             role=role,
             status=ContractStatusEnum.COMPLETED,
             page=page,
             page_size=page_size,
-            session=session
+            session=session,
         )
 
     @classmethod
-    async def check_milestones_approved(cls, contract_id: int, session: AsyncSession) -> bool:
-        from db.models import Milestone
+    async def check_milestones_approved(
+        cls, contract_id: int, session: AsyncSession
+    ) -> bool:
         from db.enums import MilestoneStatusEnum
+        from db.models import Milestone
 
         query = select(cls.model).where(
             cls.model.id == contract_id,
-            cls.model.milestones.any(
-                Milestone.status != MilestoneStatusEnum.APPROVED
-            ),
+            cls.model.milestones.any(Milestone.status != MilestoneStatusEnum.APPROVED),
         )
         contract = await session.scalar(query)
         return contract is None

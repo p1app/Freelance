@@ -1,4 +1,4 @@
-from sqlalchemy import select, func
+from sqlalchemy import func, select  # noqa: N999
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models import ChatMessage
@@ -9,7 +9,13 @@ class ChatMessageDAO:
     model = ChatMessage
 
     @classmethod
-    async def create(cls, message_data: MessageCreate, contract_id: int, sender_id: int, session: AsyncSession):
+    async def create(
+        cls,
+        message_data: MessageCreate,
+        contract_id: int,
+        sender_id: int,
+        session: AsyncSession,
+    ):
         message = ChatMessage(
             **message_data.model_dump(),
             contract_id=contract_id,
@@ -22,7 +28,9 @@ class ChatMessageDAO:
         return message
 
     @classmethod
-    async def get_by_contract(cls, session: AsyncSession, contract_id: int, page: int = 1, page_size: int = 20):
+    async def get_by_contract(
+        cls, session: AsyncSession, contract_id: int, page: int = 1, page_size: int = 20
+    ):
         query = (
             select(cls.model)
             .where(cls.model.contract_id == contract_id)
@@ -53,7 +61,9 @@ class ChatMessageDAO:
         return True
 
     @classmethod
-    async def mark_all_as_read(cls, contract_id: int, user_id: int, session: AsyncSession):
+    async def mark_all_as_read(
+        cls, contract_id: int, user_id: int, session: AsyncSession
+    ):
         query = select(cls.model).where(
             cls.model.contract_id == contract_id,
             cls.model.sender_id != user_id,
@@ -67,7 +77,9 @@ class ChatMessageDAO:
         await session.commit()
 
     @classmethod
-    async def get_unread_count(cls, contract_id: int, user_id: int, session: AsyncSession):
+    async def get_unread_count(
+        cls, contract_id: int, user_id: int, session: AsyncSession
+    ):
         query = select(func.count()).where(
             cls.model.contract_id == contract_id,
             cls.model.sender_id != user_id,

@@ -1,8 +1,8 @@
-from sqlalchemy import select, func
+from sqlalchemy import func, select  # noqa: N999
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.models import Milestone
 from db.enums import MilestoneStatusEnum
+from db.models import Milestone
 from schemas.milestoneSchema import MilestoneCreate, MilestoneUpdate
 
 
@@ -10,7 +10,9 @@ class MilestoneDAO:
     model = Milestone
 
     @classmethod
-    async def create(cls, milestone_data: MilestoneCreate, contract_id: int, session: AsyncSession):
+    async def create(
+        cls, milestone_data: MilestoneCreate, contract_id: int, session: AsyncSession
+    ):
         milestone = Milestone(
             **milestone_data.model_dump(),
             contract_id=contract_id,
@@ -27,7 +29,9 @@ class MilestoneDAO:
         return await session.scalar(query)
 
     @classmethod
-    async def update(cls, milestone_id: int, milestone_data: MilestoneUpdate, session: AsyncSession):
+    async def update(
+        cls, milestone_id: int, milestone_data: MilestoneUpdate, session: AsyncSession
+    ):
         query = select(cls.model).where(
             cls.model.id == milestone_id,
             cls.model.status == MilestoneStatusEnum.PENDING,
@@ -61,7 +65,9 @@ class MilestoneDAO:
         return True
 
     @classmethod
-    async def list_by_contract(cls, session: AsyncSession, contract_id: int, page: int = 1, page_size: int = 20):
+    async def list_by_contract(
+        cls, session: AsyncSession, contract_id: int, page: int = 1, page_size: int = 20
+    ):
         query = select(cls.model).where(cls.model.contract_id == contract_id)
 
         count_query = select(func.count()).where(cls.model.contract_id == contract_id)
@@ -117,7 +123,9 @@ class MilestoneDAO:
         return result.scalars().all()
 
     @classmethod
-    async def get_not_approved_by_contract(cls, contract_id: int, session: AsyncSession):
+    async def get_not_approved_by_contract(
+        cls, contract_id: int, session: AsyncSession
+    ):
         query = select(cls.model).where(
             cls.model.contract_id == contract_id,
             cls.model.status != MilestoneStatusEnum.APPROVED,

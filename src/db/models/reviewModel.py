@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING  # noqa: N999
 
 from sqlalchemy import CheckConstraint, ForeignKey, Integer, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -33,21 +33,21 @@ class Review(Base):
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Связи
-    contract: Mapped["Contract"] = relationship(
+    contract: Mapped[Contract] = relationship(
         "Contract",
         foreign_keys="Review.contract_id",
         back_populates="reviews",
         lazy="selectin",
     )
 
-    from_user: Mapped["User"] = relationship(
+    from_user: Mapped[User] = relationship(
         "User",
         foreign_keys="Review.from_user_id",
         back_populates="reviews_from",
         lazy="selectin",
     )
 
-    to_user: Mapped["User"] = relationship(
+    to_user: Mapped[User] = relationship(
         "User",
         foreign_keys="Review.to_user_id",
         back_populates="reviews_to",
@@ -55,12 +55,6 @@ class Review(Base):
     )
 
     __table_args__ = (
-        UniqueConstraint(
-            "contract_id", "from_user_id",
-            name="uq_review_contract_from"
-        ),
-        CheckConstraint(
-            "rating BETWEEN 1 AND 5",
-            name="ck_review_rating_range"
-        ),
+        UniqueConstraint("contract_id", "from_user_id", name="uq_review_contract_from"),
+        CheckConstraint("rating BETWEEN 1 AND 5", name="ck_review_rating_range"),
     )

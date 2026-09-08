@@ -1,10 +1,11 @@
-from pydantic import BaseModel, Field, ConfigDict
-from typing import TypeVar, Generic
+from typing import Generic, TypeVar
+
+from pydantic import BaseModel, ConfigDict, Field
 
 T = TypeVar("T")
 
 
-class PaginatedResponse(BaseModel, Generic[T]):
+class PaginatedResponse(BaseModel, Generic[T]):  # noqa: UP046
     items: list[T]
     total: int = Field(ge=0, description="Общее количество записей")
     page: int = Field(ge=1, description="Текущая страница")

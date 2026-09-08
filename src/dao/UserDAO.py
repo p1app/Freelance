@@ -1,12 +1,10 @@
-from sqlalchemy import select, func
+from sqlalchemy import func, select  # noqa: N999
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from schemas.userSchema import UserUpdate
-from schemas.authSchema import UserRegister
-from schemas.userSchema import FreelancerFilter, UserUpdate
 
 from db.enums import RoleEnum
 from db.models import User
+from schemas.authSchema import UserRegister
+from schemas.userSchema import FreelancerFilter, UserUpdate
 
 
 class UserDAO:
@@ -135,11 +133,7 @@ class UserDAO:
         return users, total
 
     @classmethod
-    async def get_freelancers(
-        cls,
-        session: AsyncSession,
-        data = FreelancerFilter
-    ):
+    async def get_freelancers(cls, session: AsyncSession, data=FreelancerFilter):
         query = select(cls.model).where(cls.model.role == RoleEnum.FREELANCER)
 
         if data.min_rating is not None:
@@ -176,5 +170,13 @@ class UserDAO:
         return users, total
 
     @classmethod
-    async def search_by_skills(cls, session: AsyncSession, skills: list[str], page: int = 1, page_size: int = 20):
-        return await cls.get_freelancers(skills=skills, page=page, page_size=page_size, session=session)
+    async def search_by_skills(
+        cls,
+        session: AsyncSession,
+        skills: list[str],
+        page: int = 1,
+        page_size: int = 20,
+    ):
+        return await cls.get_freelancers(
+            skills=skills, page=page, page_size=page_size, session=session
+        )

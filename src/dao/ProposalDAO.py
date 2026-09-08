@@ -1,9 +1,9 @@
-from sqlalchemy import select, func
+from sqlalchemy import func, select  # noqa: N999
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlalchemy.ext.asyncio import AsyncSession 
 
-from db.models import Proposal
 from db.enums import ProposalStatusEnum
+from db.models import Proposal
 from schemas.proposalSchema import ProposalCreate, ProposalUpdate
 
 
@@ -11,7 +11,13 @@ class ProposalDAO:
     model = Proposal
 
     @classmethod
-    async def create(cls, session: AsyncSession, proposal_data: ProposalCreate, project_id: int, freelancer_id: int):
+    async def create(
+        cls,
+        session: AsyncSession,
+        proposal_data: ProposalCreate,
+        project_id: int,
+        freelancer_id: int,
+    ):
         proposal = Proposal(
             **proposal_data.model_dump(),
             project_id=project_id,
@@ -36,7 +42,9 @@ class ProposalDAO:
         return await session.scalar(query)
 
     @classmethod
-    async def update(cls, session: AsyncSession, proposal_id: int, proposal_data: ProposalUpdate):
+    async def update(
+        cls, session: AsyncSession, proposal_id: int, proposal_data: ProposalUpdate
+    ):
         query = select(cls.model).where(
             cls.model.id == proposal_id,
             cls.model.status == ProposalStatusEnum.PENDING,
@@ -58,7 +66,9 @@ class ProposalDAO:
     async def delete(cls, session: AsyncSession, proposal_id: int):
         query = select(cls.model).where(
             cls.model.id == proposal_id,
-            cls.model.status.in_([ProposalStatusEnum.PENDING, ProposalStatusEnum.WITHDRAWN]),
+            cls.model.status.in_(
+                [ProposalStatusEnum.PENDING, ProposalStatusEnum.WITHDRAWN]
+            ),
         )
         proposal = await session.scalar(query)
 
@@ -150,7 +160,9 @@ class ProposalDAO:
         return proposal
 
     @classmethod
-    async def reject_others(cls, session: AsyncSession, project_id: int, exclude_proposal_id: int):
+    async def reject_others(
+        cls, session: AsyncSession, project_id: int, exclude_proposal_id: int
+    ):
         query = select(cls.model).where(
             cls.model.project_id == project_id,
             cls.model.id != exclude_proposal_id,
@@ -164,7 +176,9 @@ class ProposalDAO:
         await session.commit()
 
     @classmethod
-    async def get_by_freelancer_and_project(cls, session: AsyncSession, freelancer_id: int, project_id: int):
+    async def get_by_freelancer_and_project(
+        cls, session: AsyncSession, freelancer_id: int, project_id: int
+    ):
         query = select(cls.model).where(
             cls.model.freelancer_id == freelancer_id,
             cls.model.project_id == project_id,
