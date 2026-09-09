@@ -135,6 +135,22 @@ class ProjectDAO:
         return project
 
     @classmethod
+    async def complete(cls, project_id: int, session: AsyncSession):
+        query = select(cls.model).where(
+            cls.model.id == project_id,
+            cls.model.status == ProjectStatusEnum.IN_PROGRESS,
+        )
+        project = await session.scalar(query)
+
+        if project is None:
+            return None
+
+        project.status = ProjectStatusEnum.COMPLETED
+        await session.commit()
+        await session.refresh(project)
+        return project
+
+    @classmethod
     async def cancel(cls, project_id: int, session: AsyncSession):
         query = select(cls.model).where(
             cls.model.id == project_id,

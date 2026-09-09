@@ -135,6 +135,10 @@ class MilestoneDAO:
 
     @classmethod
     async def check_all_approved(cls, contract_id: int, session: AsyncSession) -> bool:
+        query = select(cls.model).where(cls.model.contract_id == contract_id)
+        milestone_check_exists = await session.scalar(query)
+        if milestone_check_exists is None:
+            return True
         query = select(cls.model).where(
             cls.model.contract_id == contract_id,
             cls.model.status != MilestoneStatusEnum.APPROVED,

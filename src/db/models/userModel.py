@@ -30,7 +30,7 @@ class User(Base):
     fullname: Mapped[str] = mapped_column(String(255), nullable=False)
     bio: Mapped[str | None] = mapped_column(nullable=True)
     skills: Mapped[list[str] | None] = mapped_column(ARRAY(String), nullable=True)
-    raiting: Mapped[float] = mapped_column(default=0)
+    rating: Mapped[float] = mapped_column(default=0)
     compeleted_projects: Mapped[int] = mapped_column(default=0)
     is_active: Mapped[bool] = mapped_column(default=True)
 

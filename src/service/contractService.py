@@ -8,11 +8,14 @@ from core.exceptions import (
     ValidationError,
 )
 from dao.ConractDAO import ContractDAO
+from dao.ProjectDAO import ProjectDAO
 from dao.ProposalDAO import ProposalDAO
+from dao.UserDAO import UserDAO
 from db.enums import ContractRoleUserEnum, ContractStatusEnum, ProposalStatusEnum
 from db.models.userModel import User as UserModel
 from schemas.contractSchema import ContractCreate, ContractResponse
 from schemas.paginationSchema import PaginatedResponse
+from service.milestoneService import MilestonService
 
 
 class ContractService:
@@ -137,8 +140,38 @@ class ContractService:
             pages=(total + page_size - 1) // page_size,
         )
 
-    # TODO: complete_contract — завершение контракта (проверка этапов, обновление рейтинга)
-    # будет реализовано после MilestoneService
+    @classmethod
+    async def complete_contract(
+        cls, session: AsyncSession, current_user: UserModel, contract_id: int
+    ) -> ContractResponse:
+        contract = await ContractDAO.get_by_id(session=session, contract_id=contract_id)
+        if contract is None:
+            raise NotFoundError("Contract not found")
+        if current_user.id != contract.customer_id:
+            raise ForbiddenError(
+                "It is impossible to complete a contract without being a customer"
+            )
+        if contract.status != ContractStatusEnum.ACTIVE:
+            raise BusinessError(
+                "The contract cannot be completed if the status is not active"
+            )
+        result = await MilestonService.check_all_approved(
+            session=session, contract_id=contract_id
+        )
+        if not result:
+            raise BusinessError(
+                "You will not be able to complete into a contract until the status of all stages has been approved."
+            )
+        compeleted_contract = await ContractDAO.complete(contract_id, session=session)
+        if compeleted_contract is None:
+            raise ConflictError("new contract is none")
+        await ProjectDAO.complete(session=session, project_id=contract.project_id)
+
+        await UserDAO.increment_completed_projects(
+            session=session, user_id=contract.freelancer_id
+        )
+
+        return ContractResponse.model_validate(compeleted_contract)
 
     @classmethod
     async def cancel_contract(
