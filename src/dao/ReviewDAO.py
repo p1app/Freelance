@@ -135,3 +135,16 @@ class ReviewDAO:
         )
         avg = await session.scalar(query)
         return avg or 0.0
+
+    @classmethod
+    async def get_by_contract_and_user(
+        cls,
+        session: AsyncSession,
+        contract_id: int,
+        from_user_id: int,
+    ):
+        query = select(cls.model).where(
+            cls.model.contract_id == contract_id,
+            cls.model.from_user_id == from_user_id,
+        )
+        return await session.scalar(query)

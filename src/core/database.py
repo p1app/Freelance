@@ -1,10 +1,8 @@
-from collections.abc import AsyncGenerator
 from datetime import datetime
 
 from sqlalchemy import Integer, func
 from sqlalchemy.ext.asyncio import (
     AsyncAttrs,
-    AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
@@ -19,9 +17,12 @@ engine = create_async_engine(DATABASE_URL)
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
 
-async def get_db() -> AsyncGenerator[AsyncSession]:
+async def get_db():
     async with async_session_maker() as session:
-        yield session
+        try:
+            yield session
+        finally:
+            await session.close()
 
 
 class Base(AsyncAttrs, DeclarativeBase):

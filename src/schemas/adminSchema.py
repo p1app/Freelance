@@ -33,6 +33,7 @@ class PlatformStatsResponse(BaseModel):
     clients_count: int
     freelancers_count: int
     total_projects: int
+    open_projects: int
     in_progress_projects: int
     completed_projects: int
     total_contracts: int

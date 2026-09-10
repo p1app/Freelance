@@ -185,16 +185,17 @@ class UserDAO:
         )
 
     @classmethod
-    async def update_rating(
-        cls, session: AsyncSession, user_id: int, rating: int, total_reviews: int
-    ):
-        user = await cls.get_by_id(session=session, user_id=user_id)
-        if user is None:
-            return None
-        user.rating = (user.rating + rating) / (total_reviews + 1)
-        await session.commit()
-        await session.refresh(user)
-        return user
+    async def update_rating(cls, session: AsyncSession, user_id: int) -> None:
+        from dao.ReviewDAO import ReviewDAO
+
+        stats = await ReviewDAO.get_stats_by_user(session=session, user_id=user_id)
+        average_rating = stats.get("average_rating", 0.0)
+
+        query = select(cls.model).where(cls.model.id == user_id)
+        user = await session.scalar(query)
+        if user:
+            user.rating = average_rating
+            await session.commit()
 
     @classmethod
     async def increment_completed_projects(cls, session: AsyncSession, user_id: int):

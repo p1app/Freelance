@@ -105,3 +105,8 @@ class ChatMessageDAO:
         )
         result = await session.execute(query)
         return result.scalars().all()
+
+    @classmethod
+    async def get_by_id(cls, session: AsyncSession, message_id: int):
+        query = select(cls.model).where(cls.model.id == message_id)
+        return await session.scalar(query)
