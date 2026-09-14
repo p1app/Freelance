@@ -1,0 +1,89 @@
+from typing import Annotated
+
+import uvicorn
+from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBearer
+from fastapi_jwt_harmony import TokenExpired
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.database import get_db
+from core.exceptions import AppException
+from core.health_db import health_db_func
+from routers.adminRouter import router as admin_router
+from routers.authRouter import router as auth_router
+from routers.chatRouter import router as chat_router
+from routers.contractRouter import router as contract_router
+from routers.milestoneRouter import router as milestone_router
+from routers.projectRouter import router as project_router
+from routers.proposalRouter import router as proposal_router
+from routers.reviewRouter import router as review_router
+from routers.userRouter import router as user_router
+from routers.wsRouter import router as ws_router
+
+app = FastAPI(swagger_ui_parameters={"defaultModelsExpandDepth": -1})
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",  # ← Vite dev
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],  # ← разрешает OPTIONS, POST, GET, PUT, DELETE, PATCH
+    allow_headers=["*"],  # ← разрешает Authorization, Content-Type
+)
+
+app.include_router(auth_router)
+app.include_router(user_router)
+app.include_router(admin_router)
+app.include_router(proposal_router)
+app.include_router(review_router)
+app.include_router(project_router)
+app.include_router(milestone_router)
+app.include_router(contract_router)
+app.include_router(chat_router)
+app.include_router(ws_router)
+security = HTTPBearer()
+
+
+@app.get("/", tags=["main"])
+def root():
+    return "Hello from Freelance lite"
+
+
+@app.get("/health", tags=["main"])
+async def health(db: Annotated[AsyncSession, Depends(get_db)]):
+    if await health_db_func(db):
+        return "The application is ready"
+    else:
+        raise HTTPException(status_code=503, detail="database is not ready")
+
+
+@app.exception_handler(AppException)
+async def app_exception_handler(request: Request, exc: AppException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.message},
+    )
+
+
+# ОБРАБОТЧИКИ JWT-ОШИБОК
+@app.exception_handler(TokenExpired)
+async def token_expired_handler(request: Request, exc: TokenExpired):
+    return JSONResponse(
+        status_code=401,
+        content={"detail": "Token expired"},
+    )
+
+
+@app.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"},
+    )
+
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", reload=True, port=8000, host="0.0.0.0")
