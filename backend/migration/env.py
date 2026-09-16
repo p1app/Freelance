@@ -1,13 +1,13 @@
+import os
 import sys
-from os.path import abspath, dirname, join
 
-# Вычисляем путь к папке src относительно файла env.py
-# env.py лежит в app/migrations/, значит нам нужно подняться на уровень вверх и зайти в src
-backend_dir = join(dirname(dirname(abspath(__file__))), "src")
+# Находим корень проекта (папку backend)
+backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Добавляем src в sys.path, чтобы Python видел модули напрямую
+# Добавляем в пути и сам backend, и папку src
 if backend_dir not in sys.path:
     sys.path.insert(0, backend_dir)
+    sys.path.insert(0, os.path.join(backend_dir, "src"))
 
 import asyncio  # noqa: I001
 from logging.config import fileConfig
@@ -17,7 +17,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
-from db.models import (  # type: ignore
+from models import (  # type: ignore
     User,  # noqa: F401
     Project,  # noqa: F401
     Proposal,  # noqa: F401
