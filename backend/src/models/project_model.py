@@ -70,6 +70,9 @@ class Project(Base):
     def customer_name(self) -> str:
         return self.customer.fullname
 
+    @property
+    def project_title(self) -> str:
+        return self.project.title
     # Валидация
 
     @validates("freelancer_id")
