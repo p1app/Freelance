@@ -1,10 +1,10 @@
-from models.chat_messageModel import ChatMessage
-from models.contractModel import Contract
-from models.milestoneModel import Milestone
-from models.projectModel import Project
-from models.proposalModel import Proposal
-from models.reviewModel import Review
-from models.userModel import User
+from models.chat_model import ChatMessage
+from models.contract_model import Contract
+from models.milestone_model import Milestone
+from models.project_model import Project
+from models.proposal_model import Proposal
+from models.review_model import Review
+from models.user_model import User
 
 __all__ = [
     "ChatMessage",

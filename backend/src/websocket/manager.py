@@ -1,8 +1,7 @@
 import json
 
 from fastapi import WebSocket, WebSocketException
-
-from schemas.chat_messageSchema import MessageResponse
+from schemas.chat_schema import MessageResponse
 
 
 class ConnectionManager:

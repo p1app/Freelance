@@ -1,26 +1,25 @@
 from typing import Annotated
 
 import uvicorn
+from core.database import get_db
+from core.exceptions import AppException
+from core.health_db import health_db_func
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
 from fastapi_jwt_harmony import TokenExpired
+from routers.admin_router import router as admin_router
+from routers.auth_router import router as auth_router
+from routers.chat_router import router as chat_router
+from routers.contract_router import router as contract_router
+from routers.milestone_router import router as milestone_router
+from routers.project_router import router as project_router
+from routers.proposal_router import router as proposal_router
+from routers.review_router import router as review_router
+from routers.user_router import router as user_router
+from routers.ws_router import router as ws_router
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from core.database import get_db
-from core.exceptions import AppException
-from core.health_db import health_db_func
-from routers.adminRouter import router as admin_router
-from routers.authRouter import router as auth_router
-from routers.chatRouter import router as chat_router
-from routers.contractRouter import router as contract_router
-from routers.milestoneRouter import router as milestone_router
-from routers.projectRouter import router as project_router
-from routers.proposalRouter import router as proposal_router
-from routers.reviewRouter import router as review_router
-from routers.userRouter import router as user_router
-from routers.wsRouter import router as ws_router
 
 app = FastAPI(swagger_ui_parameters={"defaultModelsExpandDepth": -1})
 app.add_middleware(
