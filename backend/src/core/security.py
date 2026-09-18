@@ -4,7 +4,8 @@ from core.database import get_db
 from core.enums import RoleEnum
 from core.exceptions import ForbiddenError, NotFoundError, UnauthorizedError
 from core.settings import config as Config
-from fastapi import Depends
+from fastapi import Depends # dishka
+
 from fastapi_jwt_harmony import JWTHarmony, JWTHarmonyDep, JWTHarmonyRefresh
 from models.user_model import User
 from passlib.context import CryptContext
