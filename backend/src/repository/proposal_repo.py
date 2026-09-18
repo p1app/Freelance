@@ -208,6 +208,19 @@ class ProposalRepository:
         await session.commit()
 
     @classmethod
+    async def reject_all(cls, session: AsyncSession, project_id: int):
+        query = select(cls.model).where(
+            cls.model.project_id == project_id,
+            cls.model.status == ProposalStatusEnum.PENDING,
+        )
+        proposals = await session.scalars(query)
+
+        for proposal in proposals:
+            proposal.status = ProposalStatusEnum.REJECTED
+
+        await session.commit()
+
+    @classmethod
     async def get_by_freelancer_and_project(
         cls, session: AsyncSession, freelancer_id: int, project_id: int
     ):

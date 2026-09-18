@@ -2,7 +2,7 @@ from core.enums import RoleEnum
 from models import User
 from schemas.auth_schema import UserRegister
 from schemas.user_schema import FreelancerFilter, UserUpdate
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -145,7 +145,7 @@ class UserRepository:
             conditions = []
             for skill in data.skills:
                 conditions.append(cls.model.skills.any(func.lower(skill)))
-            query = query.where(func.or_(*conditions))
+            query = query.where(or_(*conditions))
 
         offset = (data.page - 1) * data.page_size
         query = query.offset(offset).limit(data.page_size)
@@ -207,3 +207,9 @@ class UserRepository:
         await session.commit()
         await session.refresh(user)
         return user
+
+    @classmethod
+    async def get_completed_projects(cls, session: AsyncSession, user_id: int):
+        query = select(cls.model.completed_projects).where(cls.model.id == user_id)
+        completed_projects = await session.execute(query)
+        return completed_projects.scalar_one_or_none()

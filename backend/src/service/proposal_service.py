@@ -53,6 +53,7 @@ class ProposalService:
         )
         proposal_dict = proposal.__dict__.copy()
         proposal_dict["freelancer_name"] = proposal.freelancer.fullname
+        proposal_dict["project_title"] = proposal.project.title
         return ProposalResponse.model_validate(proposal_dict)
 
     @classmethod

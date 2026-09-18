@@ -12,6 +12,7 @@ from core.exceptions import (
 from models.project_model import Project as ProjectModel
 from models.user_model import User as UserModel
 from repository.project_repo import ProjectRepository
+from repository.proposal_repo import ProposalRepository
 from schemas.pagination_schema import PaginatedResponse
 from schemas.project_schema import (
     ProjectCreate,
@@ -170,6 +171,8 @@ class ProjectService:
         cancelled_project = await ProjectRepository.cancel(
             session=session, project_id=project_id
         )
+
+        await ProposalRepository.reject_all(session=session, project_id=project_id)
         return ProjectResponse.model_validate(cancelled_project)
 
     @classmethod

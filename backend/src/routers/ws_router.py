@@ -34,31 +34,25 @@ async def websocket_endpoint_token(
     token: str = Query(..., description="JWT access token"),
 ):
     try:
-        # 1. Проверка токена
         Authorize.jwt_required(token)
         jwt_user = Authorize.user_claims
 
         if jwt_user is None:
             raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION)
 
-        # 2. Загрузка пользователя
         user: UserModel | None = await UserRepository.get_by_id(jwt_user.id, db)
         if user is None or not user.is_active:
             raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION)
 
-        # 3. Загрузка контракта
         contract = await ContractRepository.get_by_id(contract_id, db)
         if contract is None:
             raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION)
 
-        # 4. Проверка доступа
         if contract.customer_id != user.id and contract.freelancer_id != user.id:
             raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION)
 
-        # 5. Подключение
         await ws_manager.connect(contract_id, websocket)
 
-        # 6. Цикл сообщений
         while True:
             raw = await websocket.receive_text()
             data = json.loads(raw)
@@ -67,7 +61,6 @@ async def websocket_endpoint_token(
             if not text:
                 continue
 
-            # Проверка активности контракта
             if contract.status != ContractStatusEnum.ACTIVE:
                 await websocket.send_json(
                     {
@@ -77,7 +70,6 @@ async def websocket_endpoint_token(
                 )
                 continue
 
-            # Сохранение
             message_data = await ChatRepository.create(
                 MessageCreate(message=text),
                 contract.id,
@@ -85,7 +77,6 @@ async def websocket_endpoint_token(
                 db,
             )
 
-            # Рассылка
             await ws_manager.broadcast(
                 contract_id=contract_id,
                 message=MessageResponse.model_validate(message_data),

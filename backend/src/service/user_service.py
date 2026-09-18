@@ -61,9 +61,9 @@ class UserService:
             customer_id=current_user.id,
         )
 
-        _, total_projects_freelance = await ProjectRepository.get_by_freelancer(
+        total_completed_projects = await UserRepository.get_completed_projects(
             session=session,
-            freelancer_id=current_user.id,
+            user_id=current_user.id,
         )
 
         reviews = await ReviewRepository.get_stats_by_user(
@@ -76,7 +76,7 @@ class UserService:
 
         return UserStatsResponse(
             projects_count=total_projects,  # type: ignore
-            completed_count=total_projects_freelance,  # type: ignore
+            completed_count=total_completed_projects,  # type: ignore
             reviews_count=count_reviews,
             average_rating=average_rating,
         )
