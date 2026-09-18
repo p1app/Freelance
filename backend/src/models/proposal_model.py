@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from core.database import Base
 from core.enums import ProposalStatusEnum
-from sqlalchemy import ForeignKey, Text, UniqueConstraint
+from sqlalchemy import ForeignKey, Text, UniqueConstraint, DECIMAL
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 if TYPE_CHECKING:
@@ -26,7 +26,7 @@ class Proposal(Base):
     )
 
     cover_letter: Mapped[str] = mapped_column(Text, nullable=False)
-    bid_amount: Mapped[int] = mapped_column(nullable=False)
+    bid_amount: Mapped[DECIMAL] = mapped_column(nullable=False)
     estimated_days: Mapped[int] = mapped_column(nullable=False)
 
     status: Mapped[ProposalStatusEnum] = mapped_column(
