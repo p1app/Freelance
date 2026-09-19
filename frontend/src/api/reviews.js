@@ -16,10 +16,4 @@ export const reviewsApi = {
     // Статистика отзывов
     statsByUser: (userId) =>
         api.get(`/users/${userId}/reviews/stats`),
-
-    // Обновить / удалить
-    update: (reviewId, data) =>
-        api.put(`/reviews/${reviewId}`, data),
-    remove: (reviewId) =>
-        api.delete(`/reviews/${reviewId}`),
 }

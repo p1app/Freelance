@@ -188,8 +188,9 @@ onUnmounted(() => {
 }
 
 .messages-container {
-  max-height: 450px;
-  min-height: 250px;
+  /* Фиксированная высота под 7 сообщений (7 × 68px), чтобы блок не «уползал»
+     при короткой истории; более длинная история скроллится внутри */
+  height: 476px;
   overflow-y: auto;
   background: radial-gradient(
     ellipse at top,

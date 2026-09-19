@@ -9,19 +9,36 @@ export const useMilestonesStore = defineStore('milestones', () => {
     const milestones = ref([])
     const loading = ref(false)
     const error = ref(null)
+    // Для какого контракта загружен список (чтобы не показывать чужие этапы)
+    const loadedContractId = ref(null)
 
     // ─────────────────────────────────────────────
     // ACTIONS
     // ─────────────────────────────────────────────
-    async function fetchByContract(contractId, params = {}) {
+    function isLoaded(contractId) {
+        return (
+            loadedContractId.value !== null &&
+            Number(loadedContractId.value) === Number(contractId)
+        )
+    }
+
+    async function fetchByContract(contractId, { force = false } = {}) {
+        if (!force && isLoaded(contractId)) {
+            return milestones.value
+        }
+
         loading.value = true
         error.value = null
+        // Пока грузится другой контракт, старый список не показываем
+        loadedContractId.value = null
 
         try {
-            const { data } = await milestonesApi.listByContract(contractId, params)
+            const { data } = await milestonesApi.listByContract(contractId)
             milestones.value = data.items || data
+            loadedContractId.value = contractId
             return milestones.value
         } catch (e) {
+            milestones.value = []
             error.value = e.response?.data?.detail || 'Ошибка загрузки этапов'
             return []
         } finally {
@@ -113,12 +130,15 @@ export const useMilestonesStore = defineStore('milestones', () => {
     function reset() {
         milestones.value = []
         error.value = null
+        loadedContractId.value = null
     }
 
     return {
         milestones,
         loading,
         error,
+        loadedContractId,
+        isLoaded,
         fetchByContract,
         createMilestone,
         updateMilestone,

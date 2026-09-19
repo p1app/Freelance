@@ -22,6 +22,18 @@
         Назад к контрактам
       </v-btn>
 
+      <!-- Ошибка операции -->
+      <v-alert
+        v-if="contractsStore.error"
+        type="error"
+        variant="tonal"
+        class="mb-4"
+        closable
+        @click:close="contractsStore.clearError()"
+      >
+        {{ contractsStore.error }}
+      </v-alert>
+
       <!-- Основная карточка -->
       <v-card class="mb-4">
         <v-card-item>
@@ -76,12 +88,13 @@
         </v-card-text>
 
         <!-- Действия -->
-        <v-card-actions v-if="contract.status === 'active'">
+        <v-card-actions v-if="contract.status === 'active'" class="flex-wrap gap-2">
           <v-btn
             v-if="isCustomer"
             color="success"
             prepend-icon="mdi-check-circle"
             :loading="contractsStore.loading"
+            :disabled="!allMilestonesApproved"
             @click="handleComplete"
           >
             Завершить контракт
@@ -96,6 +109,27 @@
           >
             Отменить
           </v-btn>
+
+          <!-- Почему нельзя завершить -->
+          <div
+            v-if="isCustomer && !allMilestonesApproved"
+            class="d-flex align-center text-caption w-100 mt-2"
+            style="color: #fbbf24"
+          >
+            <v-icon size="16" class="mr-1">mdi-alert-outline</v-icon>
+            <span v-if="!milestonesReady && milestonesStore.loading">
+              Проверяем этапы контракта…
+            </span>
+            <span v-else-if="!milestonesReady">
+              Не удалось загрузить этапы контракта — обновите страницу.
+            </span>
+            <span v-else-if="pendingMilestones > 0">
+              Завершить контракт нельзя: не все этапы утверждены (осталось
+              {{ pendingMilestones }} из
+              {{ milestonesStore.milestones.length }}). Утверждает этапы заказчик.
+            </span>
+            <span v-else>Завершить контракт пока нельзя.</span>
+          </div>
         </v-card-actions>
       </v-card>
 
@@ -119,7 +153,6 @@
           :loading="reviewsStore.loading"
           :error="reviewsStore.error"
           @submit="handleReviewSubmit"
-          @cancel="() => {}"
         />
       </template>
 
@@ -129,15 +162,22 @@
         <ReviewList />
       </template>
     </template>
+
+    <!-- Результат операции -->
+    <v-snackbar v-model="snackbar" color="success" :timeout="2500" location="bottom">
+      {{ snackbarText }}
+    </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
-import { computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useContractsStore } from '@/stores/contracts'
 import { useAuthStore } from '@/stores/auth'
 import { useReviewsStore } from '@/stores/reviews'
+import { useMilestonesStore } from '@/stores/milestones'
+import { useConfirm } from '@/composables/useConfirm'
 import MilestoneList from '@/components/milestone/MilestoneList.vue'
 import ChatBox from '@/components/chat/ChatBox.vue'
 import ReviewForm from '@/components/review/ReviewForm.vue'
@@ -147,6 +187,11 @@ const route = useRoute()
 const contractsStore = useContractsStore()
 const authStore = useAuthStore()
 const reviewsStore = useReviewsStore()
+const milestonesStore = useMilestonesStore()
+const { confirm } = useConfirm()
+
+const snackbar = ref(false)
+const snackbarText = ref('')
 
 const contract = computed(() => contractsStore.currentContract)
 
@@ -156,6 +201,23 @@ const isCustomer = computed(
 const isFreelancer = computed(
   () => contract.value?.freelancer_id === authStore.user?.id
 )
+
+// Этапы этого контракта уже загружены (их грузит MilestoneList, стор общий)
+const milestonesReady = computed(() =>
+  milestonesStore.isLoaded(contract.value?.id)
+)
+const pendingMilestones = computed(
+  () => milestonesStore.milestones.filter((m) => m.status !== 'approved').length
+)
+// Как и бэкенд (check_all_approved): контракт без этапов завершить можно
+const allMilestonesApproved = computed(
+  () => milestonesReady.value && pendingMilestones.value === 0
+)
+
+function showSuccess(text) {
+  snackbarText.value = text
+  snackbar.value = true
+}
 
 const canLeaveReview = computed(() => {
   if (!contract.value) return false
@@ -200,15 +262,35 @@ function formatDate(value) {
 }
 
 async function handleComplete() {
-  if (!confirm('Завершить контракт? Убедитесь, что все этапы утверждены.')) return
-  await contractsStore.completeContract(route.params.id)
+  const agreed = await confirm({
+    title: 'Завершить контракт?',
+    text: 'Все этапы утверждены. После завершения участники смогут оставить отзывы, чат закроется.',
+    confirmText: 'Завершить',
+    color: 'success',
+  })
+  if (!agreed) return
+
+  const result = await contractsStore.completeContract(route.params.id)
+  if (!result) return
+
   await loadContract()
+  showSuccess('Контракт завершён')
 }
 
 async function handleCancel() {
-  if (!confirm('Отменить контракт? Действие необратимо.')) return
-  await contractsStore.cancelContract(route.params.id)
+  const agreed = await confirm({
+    title: 'Отменить контракт?',
+    text: 'Действие необратимо: контракт закроется, чат станет недоступен.',
+    confirmText: 'Отменить контракт',
+    color: 'error',
+  })
+  if (!agreed) return
+
+  const result = await contractsStore.cancelContract(route.params.id)
+  if (!result) return
+
   await loadContract()
+  showSuccess('Контракт отменён')
 }
 
 async function handleReviewSubmit(data) {

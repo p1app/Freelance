@@ -1,12 +1,8 @@
 <template>
   <v-card class="glass form-card">
     <v-card-title class="d-flex align-center pa-6 pb-2">
-      <v-icon color="primary" size="28" class="mr-3">
-        {{ isEdit ? 'mdi-pencil' : 'mdi-star-plus' }}
-      </v-icon>
-      <span class="text-h5 font-weight-bold">
-        {{ isEdit ? 'Редактировать отзыв' : 'Оставить отзыв' }}
-      </span>
+      <v-icon color="primary" size="28" class="mr-3">mdi-star-plus</v-icon>
+      <span class="text-h5 font-weight-bold">Оставить отзыв</span>
     </v-card-title>
 
     <v-card-subtitle class="px-6 pb-4" style="color: #9CA3AF">
@@ -70,16 +66,7 @@
             prepend-icon="mdi-send"
             class="btn-glow flex-grow-1"
           >
-            {{ isEdit ? 'Сохранить' : 'Отправить' }}
-          </v-btn>
-          <v-btn
-            variant="outlined"
-            size="large"
-            :disabled="loading"
-            prepend-icon="mdi-close"
-            @click="$emit('cancel')"
-          >
-            Отмена
+            Отправить
           </v-btn>
         </div>
       </v-form>
@@ -88,13 +75,9 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch, computed } from 'vue'
+import { ref, reactive, computed } from 'vue'
 
-const props = defineProps({
-  review: {
-    type: Object,
-    default: null,
-  },
+defineProps({
   loading: {
     type: Boolean,
     default: false,
@@ -105,10 +88,9 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['submit', 'cancel'])
+const emit = defineEmits(['submit'])
 
 const formRef = ref(null)
-const isEdit = ref(false)
 
 const form = reactive({
   rating: 5,
@@ -125,22 +107,6 @@ const ratingText = computed(() => {
   }
   return texts[form.rating] || ''
 })
-
-watch(
-  () => props.review,
-  (val) => {
-    if (val) {
-      isEdit.value = true
-      form.rating = val.rating
-      form.comment = val.comment || ''
-    } else {
-      isEdit.value = false
-      form.rating = 5
-      form.comment = ''
-    }
-  },
-  { immediate: true }
-)
 
 async function handleSubmit() {
   const { valid } = await formRef.value.validate()

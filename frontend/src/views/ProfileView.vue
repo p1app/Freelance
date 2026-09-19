@@ -14,17 +14,6 @@
         />
       </template>
 
-      <!-- Редактирование отзыва -->
-      <template v-else-if="editingReview">
-        <ReviewForm
-          :review="editingReview"
-          :loading="reviewsStore.loading"
-          :error="reviewsStore.error"
-          @submit="handleUpdateReview"
-          @cancel="editingReview = null"
-        />
-      </template>
-
       <!-- Просмотр -->
       <template v-else>
         <v-row>
@@ -194,11 +183,7 @@
               </v-card-title>
               <v-card-text class="pa-5 pt-0">
                 <ReviewStats :stats="reviewsStats" />
-                <ReviewList
-                  @edit="handleEditReview"
-                  @delete="handleDeleteReview"
-                  @page-change="handleReviewPageChange"
-                />
+                <ReviewList @page-change="handleReviewPageChange" />
               </v-card-text>
             </v-card>
           </v-col>
@@ -250,7 +235,6 @@ import { useAuthStore } from '@/stores/auth'
 import { useUserStore } from '@/stores/user'
 import { useReviewsStore } from '@/stores/reviews'
 import ProfileEditForm from '@/components/profile/ProfileEditForm.vue'
-import ReviewForm from '@/components/review/ReviewForm.vue'
 import ReviewList from '@/components/review/ReviewList.vue'
 import ReviewStats from '@/components/review/ReviewStats.vue'
 
@@ -260,7 +244,6 @@ const userStore = useUserStore()
 const reviewsStore = useReviewsStore()
 
 const isEditingProfile = ref(false)
-const editingReview = ref(null)
 const showDeleteDialog = ref(false)
 const deleting = ref(false)
 
@@ -313,29 +296,6 @@ async function handleUpdateProfile(data) {
   if (result) {
     await authStore.fetchProfile()
     isEditingProfile.value = false
-  }
-}
-
-function handleEditReview(review) {
-  editingReview.value = review
-}
-
-async function handleUpdateReview(data) {
-  if (!editingReview.value) return
-
-  const result = await reviewsStore.updateReview(editingReview.value.id, data)
-  if (result) {
-    editingReview.value = null
-    await reviewsStore.fetchByUser(authStore.user.id)
-  }
-}
-
-async function handleDeleteReview(reviewId) {
-  if (!confirm('Удалить отзыв?')) return
-
-  const success = await reviewsStore.deleteReview(reviewId)
-  if (success) {
-    await reviewsStore.fetchByUser(authStore.user.id)
   }
 }
 

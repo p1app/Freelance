@@ -181,6 +181,9 @@ class ContractService:
             await UserRepository.increment_completed_projects(
                 session=session, user_id=contract.freelancer_id
             )
+            await UserRepository.increment_completed_projects(
+                session=session, user_id=contract.customer_id
+            )
             await session.commit()
 
             return ContractResponse.model_validate(compeleted_contract)

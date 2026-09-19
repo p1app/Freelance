@@ -18,6 +18,9 @@
         <router-view />
       </v-main>
     </template>
+
+    <!-- Глобальный диалог подтверждения (замена нативному confirm) -->
+    <ConfirmDialog />
   </v-app>
 </template>
 
@@ -27,6 +30,7 @@ import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import AppBar from '@/components/layout/AppBar.vue'
 import AppDrawer from '@/components/layout/AppDrawer.vue'
+import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 
 const route = useRoute()
 const authStore = useAuthStore()

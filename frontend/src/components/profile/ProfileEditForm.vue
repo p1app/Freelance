@@ -11,6 +11,20 @@
 
     <v-card-text class="pa-6">
       <v-form ref="formRef" @submit.prevent="handleSubmit">
+        <!-- Email только для чтения: не редактируется через этот эндпоинт -->
+        <v-text-field
+          :model-value="user.email"
+          label="Email"
+          prepend-inner-icon="mdi-email"
+          variant="outlined"
+          rounded="lg"
+          readonly
+          disabled
+          hint="Email изменить нельзя"
+          persistent-hint
+          class="mb-4"
+        />
+
         <v-text-field
           v-model="form.fullname"
           label="Полное имя"

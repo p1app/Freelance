@@ -51,7 +51,7 @@
               v-model.number="form.budget"
               label="Бюджет"
               placeholder="50000"
-              prepend-inner-icon="mdi-currency-usd"
+              prepend-inner-icon="mdi-cash"
               suffix="₽"
               type="number"
               :rules="[rules.required, rules.positive]"

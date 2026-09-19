@@ -34,7 +34,7 @@
       <v-row dense>
         <v-col cols="6">
           <div class="metric-box">
-            <v-icon color="primary" size="20">mdi-currency-usd</v-icon>
+            <v-icon color="primary" size="20">mdi-cash</v-icon>
             <div>
               <div class="text-caption" style="color: #9CA3AF">Цена</div>
               <div class="font-weight-bold">{{ formatBudget(proposal.bid_amount) }}</div>

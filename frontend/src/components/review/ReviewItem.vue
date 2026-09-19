@@ -30,33 +30,11 @@
     <v-card-text v-if="review.comment">
       <p class="text-body-2">{{ review.comment }}</p>
     </v-card-text>
-
-    <!-- Действия (только для автора) -->
-    <v-card-actions v-if="isOwn">
-      <v-btn
-        variant="text"
-        size="small"
-        prepend-icon="mdi-pencil"
-        @click.stop="$emit('edit', review)"
-      >
-        Изменить
-      </v-btn>
-      <v-btn
-        variant="text"
-        size="small"
-        color="error"
-        prepend-icon="mdi-delete"
-        @click.stop="$emit('delete', review.id)"
-      >
-        Удалить
-      </v-btn>
-    </v-card-actions>
   </v-card>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import { useAuthStore } from '@/stores/auth'
 import RatingStars from './RatingStars.vue'
 
 const props = defineProps({
@@ -65,14 +43,6 @@ const props = defineProps({
     required: true,
   },
 })
-
-defineEmits(['edit', 'delete'])
-
-const authStore = useAuthStore()
-
-const isOwn = computed(
-  () => props.review.from_user_id === authStore.user?.id
-)
 
 const initials = computed(() => {
   const name = props.review.from_user_name || 'U'

@@ -9,7 +9,6 @@ from schemas.review_schema import (
     ReviewCreate,
     ReviewResponse,
     ReviewStatsResponse,
-    ReviewUpdate,
 )
 from service.review_service import ReviewService
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -90,40 +89,4 @@ async def get_review_stats(
     return await ReviewService.get_review_stats(
         session=db,
         user_id=user_id,
-    )
-
-
-@router.put(
-    path="/reviews/{review_id}",
-    response_model=ReviewResponse,
-    status_code=status.HTTP_200_OK,
-)
-async def update_review(
-    review_id: int,
-    data: ReviewUpdate,
-    db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[UserModel, Depends(get_current_user)],
-) -> ReviewResponse:
-    return await ReviewService.update_review(
-        session=db,
-        current_user=current_user,
-        review_id=review_id,
-        data=data,
-    )
-
-
-@router.delete(
-    path="/reviews/{review_id}",
-    response_model=bool,
-    status_code=status.HTTP_200_OK,
-)
-async def delete_review(
-    review_id: int,
-    db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[UserModel, Depends(get_current_user)],
-) -> bool:
-    return await ReviewService.delete_review(
-        session=db,
-        current_user=current_user,
-        review_id=review_id,
     )

@@ -1,5 +1,3 @@
-from typing import Literal
-
 from core.enums import ContractStatusEnum
 from core.exceptions import BusinessError, ConflictError, ForbiddenError, NotFoundError
 from models import User as UserModel
@@ -11,7 +9,6 @@ from schemas.review_schema import (
     ReviewCreate,
     ReviewResponse,
     ReviewStatsResponse,
-    ReviewUpdate,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -141,60 +138,6 @@ class ReviewService:
             session=session, contract_id=contract_id
         )
         return [ReviewResponse.model_validate(review) for review in reviews]
-
-    @classmethod
-    async def update_review(
-        cls,
-        session: AsyncSession,
-        current_user: UserModel,
-        review_id: int,
-        data: ReviewUpdate,
-    ) -> ReviewResponse:
-        review = await ReviewRepository.get_by_id(session=session, review_id=review_id)
-        if review is None:
-            raise NotFoundError("Review not found")
-
-        if review.from_user_id != current_user.id:
-            raise ForbiddenError("You can only update your own review")
-
-        updated_review = await ReviewRepository.update(
-            session=session,
-            review_id=review_id,
-            review_data=data,
-        )
-
-        if updated_review is None:
-            raise ConflictError("updated data is None")
-
-        # Пересчёт рейтинга получателя
-        await UserRepository.update_rating(
-            session=session, user_id=updated_review.to_user_id
-        )  # type: ignore
-
-        return ReviewResponse.model_validate(updated_review)
-
-    @classmethod
-    async def delete_review(
-        cls,
-        session: AsyncSession,
-        current_user: UserModel,
-        review_id: int,
-    ) -> Literal[True]:
-        review = await ReviewRepository.get_by_id(session=session, review_id=review_id)
-        if review is None:
-            raise NotFoundError("Review not found")
-
-        if review.from_user_id != current_user.id:
-            raise ForbiddenError("You can only delete your own review")
-
-        to_user_id = review.to_user_id
-
-        await ReviewRepository.delete(session=session, review_id=review_id)
-
-        # Пересчёт рейтинга получателя
-        await UserRepository.update_rating(session=session, user_id=to_user_id)
-
-        return True
 
     @classmethod
     async def get_review_stats(

@@ -64,7 +64,7 @@
           <v-row>
             <v-col cols="12" sm="4">
               <div class="info-card">
-                <v-icon color="primary" size="32" class="mb-2">mdi-currency-usd</v-icon>
+                <v-icon color="primary" size="32" class="mb-2">mdi-wallet-outline</v-icon>
                 <div class="text-caption" style="color: #9ca3af">Бюджет</div>
                 <div class="text-h5 font-weight-bold gradient-text">
                   {{ formatBudget(project.budget) }}
@@ -194,6 +194,7 @@ import { useRoute } from 'vue-router'
 import { useProjectsStore } from '@/stores/projects'
 import { useProposalsStore } from '@/stores/proposals'
 import { useAuthStore } from '@/stores/auth'
+import { useConfirm } from '@/composables/useConfirm'
 import ProposalForm from '@/components/proposal/ProposalForm.vue'
 import ProposalCard from '@/components/proposal/ProposalCard.vue'
 import MyProposalCard from '@/components/proposal/MyProposalCard.vue'
@@ -202,6 +203,7 @@ const route = useRoute()
 const projectsStore = useProjectsStore()
 const proposalsStore = useProposalsStore()
 const authStore = useAuthStore()
+const { confirm } = useConfirm()
 
 const actionLoading = ref(false)
 
@@ -293,7 +295,14 @@ async function handlePublish() {
 }
 
 async function handleCancel() {
-  if (!confirm('Отменить проект? Действие необратимо.')) return
+  const agreed = await confirm({
+    title: 'Отменить проект?',
+    text: 'Проект закроется для новых откликов, ожидающие отклики будут отклонены. Действие необратимо.',
+    confirmText: 'Отменить проект',
+    color: 'error',
+  })
+  if (!agreed) return
+
   actionLoading.value = true
   await projectsStore.cancelProject(route.params.id)
   await loadProject()
@@ -313,7 +322,14 @@ async function handleProposalSubmit(data) {
 }
 
 async function handleAccept(proposalId) {
-  if (!confirm('Принять отклик? Будет создан контракт.')) return
+  const agreed = await confirm({
+    title: 'Принять отклик?',
+    text: 'Будет создан контракт с этим фрилансером, остальные отклики отклонятся.',
+    confirmText: 'Принять',
+    color: 'success',
+  })
+  if (!agreed) return
+
   actionLoading.value = true
   await proposalsStore.acceptProposal(proposalId)
   await loadProject()
@@ -321,7 +337,14 @@ async function handleAccept(proposalId) {
 }
 
 async function handleReject(proposalId) {
-  if (!confirm('Отклонить отклик?')) return
+  const agreed = await confirm({
+    title: 'Отклонить отклик?',
+    text: 'Фрилансер получит отказ, повторно откликнуться на этот проект он не сможет.',
+    confirmText: 'Отклонить',
+    color: 'error',
+  })
+  if (!agreed) return
+
   actionLoading.value = true
   await proposalsStore.rejectProposal(proposalId)
   await loadProject()

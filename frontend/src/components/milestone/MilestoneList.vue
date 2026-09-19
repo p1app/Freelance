@@ -49,11 +49,8 @@
       {{ milestonesStore.error }}
     </v-alert>
 
-    <!-- Загрузка -->
-    <v-skeleton-loader
-      v-if="milestonesStore.loading && milestonesStore.milestones.length === 0"
-      type="card"
-    />
+    <!-- Загрузка (или ещё не загружены этапы этого контракта) -->
+    <v-skeleton-loader v-if="!isLoaded" type="card" />
 
     <!-- Пусто -->
     <v-empty-state
@@ -89,8 +86,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useMilestonesStore } from '@/stores/milestones'
+import { useConfirm } from '@/composables/useConfirm'
 import MilestoneItem from './MilestoneItem.vue'
 import MilestoneForm from './MilestoneForm.vue'
 
@@ -102,12 +100,16 @@ const props = defineProps({
 })
 
 const milestonesStore = useMilestonesStore()
+const { confirm } = useConfirm()
 
 const showForm = ref(false)
 const editingMilestone = ref(null)
 
-async function load() {
-  await milestonesStore.fetchByContract(props.contractId)
+// Список этапов именно этого контракта уже загружен
+const isLoaded = computed(() => milestonesStore.isLoaded(props.contractId))
+
+async function load({ force = false } = {}) {
+  await milestonesStore.fetchByContract(props.contractId, { force })
 }
 
 async function handleSubmit(data) {
@@ -118,7 +120,7 @@ async function handleSubmit(data) {
   }
   showForm.value = false
   editingMilestone.value = null
-  await load()
+  await load({ force: true })
 }
 
 function handleCancel() {
@@ -132,20 +134,27 @@ function handleEdit(milestone) {
 }
 
 async function handleDelete(milestoneId) {
-  if (!confirm('Удалить этап?')) return
+  const agreed = await confirm({
+    title: 'Удалить этап?',
+    text: 'Этап исчезнет из контракта, восстановить его будет нельзя.',
+    confirmText: 'Удалить',
+    color: 'error',
+  })
+  if (!agreed) return
+
   await milestonesStore.deleteMilestone(milestoneId)
-  await load()
+  await load({ force: true })
 }
 
 async function handleComplete(milestoneId) {
   await milestonesStore.completeMilestone(milestoneId)
-  await load()
+  await load({ force: true })
 }
 
 async function handleApprove(milestoneId) {
   await milestonesStore.approveMilestone(milestoneId)
-  await load()
+  await load({ force: true })
 }
 
-onMounted(load)
+onMounted(() => load({ force: true }))
 </script>

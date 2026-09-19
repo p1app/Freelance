@@ -189,8 +189,8 @@ class ProjectRepository:
 
         if project is None:
             return None
-        project.status = ProjectStatusEnum.IN_PROGRESS
         project.freelancer_id = freelancer_id
+        project.status = ProjectStatusEnum.IN_PROGRESS
         await session.flush()
         await session.refresh(project)
         return project

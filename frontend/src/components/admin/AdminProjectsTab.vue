@@ -143,9 +143,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAdminStore } from '@/stores/admin'
+import { useConfirm } from '@/composables/useConfirm'
 
 const router = useRouter()
 const adminStore = useAdminStore()
+const { confirm } = useConfirm()
 
 const statusFilter = ref(null)
 // Бэкенд отдаёт и удалённые проекты (их можно восстановить), фильтруем на клиенте
@@ -240,7 +242,14 @@ function viewProject(item) {
 }
 
 async function handleDelete(item) {
-  if (!confirm(`Удалить проект "${item.title}"?`)) return
+  const agreed = await confirm({
+    title: `Удалить проект «${item.title}»?`,
+    text: 'Проект скроется из списков, но его можно будет восстановить в фильтре «Удалённые».',
+    confirmText: 'Удалить',
+    color: 'error',
+  })
+  if (!agreed) return
+
   await adminStore.deleteProject(item.id)
 }
 

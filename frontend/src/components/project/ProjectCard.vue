@@ -31,7 +31,7 @@
     <v-divider style="border-color: rgba(59, 130, 246, 0.1)" />
 
     <v-card-actions>
-      <v-icon size="small" class="mr-1" color="primary">mdi-currency-usd</v-icon>
+      <v-icon size="small" class="mr-1" color="primary">mdi-wallet-outline</v-icon>
       <span class="font-weight-bold">{{ formatBudget(project.budget) }}</span>
 
       <v-spacer />

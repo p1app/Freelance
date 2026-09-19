@@ -16,8 +16,6 @@
       v-for="review in reviewsStore.reviews"
       :key="review.id"
       :review="review"
-      @edit="$emit('edit', $event)"
-      @delete="$emit('delete', $event)"
     />
 
     <v-pagination
@@ -34,7 +32,7 @@
 import { useReviewsStore } from '@/stores/reviews'
 import ReviewItem from './ReviewItem.vue'
 
-defineEmits(['edit', 'delete', 'page-change'])
+defineEmits(['page-change'])
 
 const reviewsStore = useReviewsStore()
 </script>

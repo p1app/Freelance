@@ -94,39 +94,6 @@ export const useReviewsStore = defineStore('reviews', () => {
         }
     }
 
-    async function updateReview(reviewId, data) {
-        loading.value = true
-        error.value = null
-
-        try {
-            const { data: updated } = await reviewsApi.update(reviewId, data)
-            const index = reviews.value.findIndex((r) => r.id === reviewId)
-            if (index !== -1) reviews.value[index] = updated
-            return updated
-        } catch (e) {
-            error.value = e.response?.data?.detail || 'Ошибка обновления'
-            return null
-        } finally {
-            loading.value = false
-        }
-    }
-
-    async function deleteReview(reviewId) {
-        loading.value = true
-        error.value = null
-
-        try {
-            await reviewsApi.remove(reviewId)
-            reviews.value = reviews.value.filter((r) => r.id !== reviewId)
-            return true
-        } catch (e) {
-            error.value = e.response?.data?.detail || 'Ошибка удаления'
-            return false
-        } finally {
-            loading.value = false
-        }
-    }
-
     function setPage(page) {
         pagination.value.page = page
     }
@@ -151,8 +118,6 @@ export const useReviewsStore = defineStore('reviews', () => {
         fetchStatsByUser,
         fetchByContract,
         createReview,
-        updateReview,
-        deleteReview,
         setPage,
         clearError,
         reset,

@@ -1,5 +1,5 @@
 from models import Review
-from schemas.review_schema import ReviewCreate, ReviewUpdate
+from schemas.review_schema import ReviewCreate
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -31,36 +31,6 @@ class ReviewRepository:
     async def get_by_id(cls, session: AsyncSession, review_id: int):
         query = select(cls.model).where(cls.model.id == review_id)
         return await session.scalar(query)
-
-    @classmethod
-    async def update(
-        cls, session: AsyncSession, review_id: int, review_data: ReviewUpdate
-    ):
-        query = select(cls.model).where(cls.model.id == review_id)
-        review = await session.scalar(query)
-
-        if review is None:
-            return None
-
-        update_data = review_data.model_dump(exclude_unset=True)
-        for key, value in update_data.items():
-            setattr(review, key, value)
-
-        await session.commit()
-        await session.refresh(review)
-        return review
-
-    @classmethod
-    async def delete(cls, session: AsyncSession, review_id: int):
-        query = select(cls.model).where(cls.model.id == review_id)
-        review = await session.scalar(query)
-
-        if review is None:
-            return None
-
-        await session.delete(review)
-        await session.commit()
-        return True
 
     @classmethod
     async def list_by_user(

@@ -75,7 +75,7 @@ class ProjectService:
             created_at=project.created_at,
             customer_name=project.customer.fullname,
             freelancer_name=None,
-            proposal_count=None,
+            proposal_count=len(project.proposals) if project.proposals else 0,
             proposals=None,
         )
         if project.freelancer != None:
@@ -87,7 +87,7 @@ class ProjectService:
             proposals_valid = [
                 ProposalResponse.model_validate(i) for i in project.proposals
             ]
-            response.proposal_count = len(project.proposals) if project.proposals else 0
+
             response.proposals = proposals_valid
         return response
 

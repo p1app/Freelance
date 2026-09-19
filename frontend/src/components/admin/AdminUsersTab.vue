@@ -135,9 +135,11 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAdminStore } from '@/stores/admin'
+import { useConfirm } from '@/composables/useConfirm'
 
 const router = useRouter()
 const adminStore = useAdminStore()
+const { confirm } = useConfirm()
 
 const roleFilter = ref(null)
 const statusFilter = ref(null)
@@ -203,7 +205,14 @@ function viewProfile(item) {
 }
 
 async function handleBlock(item) {
-  if (!confirm(`Заблокировать пользователя ${item.username}?`)) return
+  const agreed = await confirm({
+    title: `Заблокировать ${item.username}?`,
+    text: 'Пользователь не сможет войти и пользоваться API до разблокировки.',
+    confirmText: 'Заблокировать',
+    color: 'error',
+  })
+  if (!agreed) return
+
   await adminStore.blockUser(item.id)
 }
 

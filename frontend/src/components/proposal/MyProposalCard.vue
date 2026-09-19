@@ -68,12 +68,14 @@
 <script setup>
 import { computed } from 'vue'
 import { useProposalsStore } from '@/stores/proposals'
+import { useConfirm } from '@/composables/useConfirm'
 
 const props = defineProps({
   proposal: { type: Object, required: true },
 })
 
 const proposalsStore = useProposalsStore()
+const { confirm } = useConfirm()
 
 const statusMap = {
   pending: { label: 'Ожидает', color: 'orange', icon: 'mdi-clock-outline' },
@@ -116,7 +118,14 @@ function formatDate(value) {
 }
 
 async function handleWithdraw() {
-  if (!confirm('Отозвать отклик?')) return
+  const agreed = await confirm({
+    title: 'Отозвать отклик?',
+    text: 'Заказчик больше не сможет его принять. Откликнуться заново будет можно.',
+    confirmText: 'Отозвать',
+    color: 'error',
+  })
+  if (!agreed) return
+
   await proposalsStore.withdrawProposal(props.proposal.id)
 }
 </script>
