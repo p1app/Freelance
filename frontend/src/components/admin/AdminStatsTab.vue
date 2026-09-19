@@ -88,6 +88,11 @@
           </v-list-item>
           <v-divider />
           <v-list-item>
+            <v-list-item-title>Удалённых проектов</v-list-item-title>
+            <template #append>{{ stats.deleted_projects ?? 0 }}</template>
+          </v-list-item>
+          <v-divider />
+          <v-list-item>
             <v-list-item-title>Всего контрактов</v-list-item-title>
             <template #append>{{ stats.total_contracts }}</template>
           </v-list-item>

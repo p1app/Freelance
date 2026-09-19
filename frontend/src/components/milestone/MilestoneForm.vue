@@ -20,6 +20,8 @@
           variant="outlined"
           rounded="lg"
           :disabled="loading"
+          counter="50"
+          maxlength="50"
         />
 
         <v-textarea
@@ -27,10 +29,13 @@
           label="Описание"
           placeholder="Что нужно сделать на этом этапе..."
           prepend-inner-icon="mdi-text"
+          :rules="[rules.required, rules.descriptionLength]"
           rows="3"
           variant="outlined"
           rounded="lg"
           :disabled="loading"
+          counter="5000"
+          maxlength="5000"
           auto-grow
         />
 
@@ -111,6 +116,7 @@ const form = reactive({
 const rules = {
   required: (v) => !!v || 'Обязательное поле',
   titleLength: (v) => (v && v.length >= 5) || 'Минимум 5 символов',
+  descriptionLength: (v) => (v && v.length >= 5) || 'Минимум 5 символов',
   futureDate: (v) => {
     if (!v) return 'Укажите дату'
     return new Date(v) > new Date() || 'Дата должна быть в будущем'
@@ -141,7 +147,7 @@ async function handleSubmit() {
 
   emit('submit', {
     title: form.title,
-    description: form.description || null,
+    description: form.description,
     due_date: new Date(form.due_date).toISOString(),
   })
 }

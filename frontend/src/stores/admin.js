@@ -123,10 +123,24 @@ export const useAdminStore = defineStore('admin', () => {
     async function deleteProject(projectId) {
         try {
             await adminApi.deleteProject(projectId)
-            projects.value = projects.value.filter((p) => p.id !== projectId)
+            // Удаление мягкое: помечаем проект, чтобы админ мог его восстановить
+            const project = projects.value.find((p) => p.id === projectId)
+            if (project) project.is_deleted = true
             return true
         } catch (e) {
             error.value = e.response?.data?.detail || 'Ошибка удаления'
+            return false
+        }
+    }
+
+    async function restoreProject(projectId) {
+        try {
+            await adminApi.restoreProject(projectId)
+            const project = projects.value.find((p) => p.id === projectId)
+            if (project) project.is_deleted = false
+            return true
+        } catch (e) {
+            error.value = e.response?.data?.detail || 'Ошибка восстановления'
             return false
         }
     }
@@ -167,6 +181,7 @@ export const useAdminStore = defineStore('admin', () => {
         unblockUser,
         fetchProjects,
         deleteProject,
+        restoreProject,
         fetchStats,
         clearError,
     }

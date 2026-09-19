@@ -10,6 +10,11 @@ export const useProposalsStore = defineStore('proposals', () => {
     const loading = ref(false)
     const error = ref(null)
 
+    // Отклик текущего фрилансера на открытый проект (нужен ProjectDetailView,
+    // чтобы после перезагрузки страницы не показывать форму повторно)
+    const myProposalForProject = ref(null)
+    const myProposalChecked = ref(false)
+
     const pagination = ref({
         page: 1,
         pageSize: 12,
@@ -86,6 +91,41 @@ export const useProposalsStore = defineStore('proposals', () => {
         }
     }
 
+    /**
+     * Отклик текущего фрилансера на конкретный проект.
+     * Бэкенд отдаёт 404, если отклика нет, — это нормальная ситуация, не ошибка.
+     * Отозванный отклик не считаем: по правилам бэкенда после отзыва можно откликнуться снова.
+     */
+    async function fetchMyProposalForProject(projectId) {
+        myProposalChecked.value = false
+        myProposalForProject.value = null
+
+        try {
+            const { data } = await proposalsApi.myProposalByProject(projectId)
+            myProposalForProject.value =
+                data?.status === 'withdrawn' ? null : data
+            return myProposalForProject.value
+        } catch (e) {
+            if (e.response?.status !== 404) {
+                error.value =
+                    e.response?.data?.detail || 'Ошибка загрузки отклика'
+            }
+            return null
+        } finally {
+            myProposalChecked.value = true
+        }
+    }
+
+    function setMyProposalForProject(proposal) {
+        myProposalForProject.value = proposal || null
+        myProposalChecked.value = true
+    }
+
+    function clearMyProposalForProject() {
+        myProposalForProject.value = null
+        myProposalChecked.value = false
+    }
+
     async function updateProposal(proposalId, data) {
         loading.value = true
         error.value = null
@@ -111,6 +151,12 @@ export const useProposalsStore = defineStore('proposals', () => {
             const index = proposals.value.findIndex((p) => p.id === proposalId)
             if (index !== -1) {
                 proposals.value[index] = data
+            }
+            if (myProposalForProject.value?.id === proposalId) {
+                // Отозванный отклик не мешает откликнуться снова,
+                // поэтому возвращаем форму отклика
+                myProposalForProject.value = null
+                myProposalChecked.value = true
             }
             return data
         } catch (e) {
@@ -159,6 +205,8 @@ export const useProposalsStore = defineStore('proposals', () => {
     function reset() {
         proposals.value = []
         error.value = null
+        myProposalForProject.value = null
+        myProposalChecked.value = false
     }
 
     return {
@@ -166,9 +214,14 @@ export const useProposalsStore = defineStore('proposals', () => {
         loading,
         error,
         pagination,
+        myProposalForProject,
+        myProposalChecked,
         fetchByProject,
         fetchMyProposals,
         createProposal,
+        fetchMyProposalForProject,
+        setMyProposalForProject,
+        clearMyProposalForProject,
         updateProposal,
         withdrawProposal,
         acceptProposal,

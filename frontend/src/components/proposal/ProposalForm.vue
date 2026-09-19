@@ -21,8 +21,8 @@
           variant="outlined"
           rounded="lg"
           :disabled="loading"
-          counter="2000"
-          maxlength="2000"
+          counter="1000"
+          maxlength="1000"
           auto-grow
         />
 

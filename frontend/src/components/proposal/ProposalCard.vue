@@ -54,10 +54,7 @@
     </v-card-text>
 
     <!-- Действия для заказчика -->
-    <v-card-actions
-      v-if="canManage && proposal.status === 'pending'"
-      class="pa-5 pt-0"
-    >
+    <v-card-actions v-if="canManage && canDecide" class="pa-5 pt-0">
       <v-btn
         color="success"
         variant="flat"
@@ -82,10 +79,7 @@
     </v-card-actions>
 
     <!-- Действия для фрилансера -->
-    <v-card-actions
-      v-if="isOwner && proposal.status === 'pending'"
-      class="pa-5 pt-0"
-    >
+    <v-card-actions v-if="isOwner && canDecide" class="pa-5 pt-0">
       <v-btn
         variant="outlined"
         color="error"
@@ -105,12 +99,19 @@ import { useAuthStore } from '@/stores/auth'
 const props = defineProps({
   proposal: { type: Object, required: true },
   projectCustomerId: { type: Number, required: true },
+  // Решения по откликам доступны только пока проект открыт:
+  // у отменённого/завершённого проекта принимать и отклонять нельзя
+  projectStatus: { type: String, default: 'open' },
   loading: { type: Boolean, default: false },
 })
 
 defineEmits(['accept', 'reject', 'withdraw'])
 
 const authStore = useAuthStore()
+
+const canDecide = computed(
+  () => props.projectStatus === 'open' && props.proposal.status === 'pending'
+)
 
 const initials = computed(() => {
   const name = props.proposal.freelancer_name || 'U'

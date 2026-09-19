@@ -13,6 +13,8 @@ export const adminApi = {
     listProjects: (params) => api.get('/admin/projects', { params }),
     deleteProject: (projectId) =>
         api.delete(`/admin/projects/${projectId}`),
+    restoreProject: (projectId) =>
+        api.patch(`/admin/projects/${projectId}/restore`),
 
     // Статистика
     stats: () => api.get('/admin/stats'),

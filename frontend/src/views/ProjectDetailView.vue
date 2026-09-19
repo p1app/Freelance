@@ -143,17 +143,14 @@
         />
       </template>
 
-      <!-- Отклик отправлен -->
-      <v-alert
-        v-else-if="hasProposed && project.status === 'open'"
-        type="success"
-        variant="tonal"
-        icon="mdi-check-circle"
-        class="mt-4 fade-in"
-      >
-        <v-alert-title>Отклик отправлен</v-alert-title>
-        Ваш отклик уже отправлен. Ожидайте решения заказчика.
-      </v-alert>
+      <!-- Свой отклик на этот проект (после отправки или перезагрузки страницы) -->
+      <template v-else-if="ownProposal">
+        <div class="d-flex align-center mt-6 mb-3">
+          <v-icon color="primary" size="28" class="mr-2">mdi-send</v-icon>
+          <h2 class="text-h5 font-weight-bold">Ваш отклик</h2>
+        </div>
+        <MyProposalCard :proposal="ownProposal" />
+      </template>
 
       <!-- Отклики для заказчика -->
       <template v-if="isCustomer && proposalsStore.proposals.length > 0">
@@ -165,11 +162,23 @@
           </v-chip>
         </div>
 
+        <v-alert
+          v-if="project.status !== 'open'"
+          type="info"
+          variant="tonal"
+          density="compact"
+          class="mb-3"
+        >
+          Проект не открыт для приёма откликов — принять или отклонить отклик
+          больше нельзя.
+        </v-alert>
+
         <ProposalCard
           v-for="proposal in proposalsStore.proposals"
           :key="proposal.id"
           :proposal="proposal"
           :project-customer-id="project.customer_id"
+          :project-status="project.status"
           :loading="actionLoading"
           @accept="handleAccept"
           @reject="handleReject"
@@ -187,6 +196,7 @@ import { useProposalsStore } from '@/stores/proposals'
 import { useAuthStore } from '@/stores/auth'
 import ProposalForm from '@/components/proposal/ProposalForm.vue'
 import ProposalCard from '@/components/proposal/ProposalCard.vue'
+import MyProposalCard from '@/components/proposal/MyProposalCard.vue'
 
 const route = useRoute()
 const projectsStore = useProjectsStore()
@@ -194,12 +204,18 @@ const proposalsStore = useProposalsStore()
 const authStore = useAuthStore()
 
 const actionLoading = ref(false)
-const hasProposed = ref(false)
 
 const project = computed(() => projectsStore.currentProject)
 
 const isCustomer = computed(
-  () => project.value?.customer_id === authStore.user?.id
+  () =>
+    !!authStore.user?.id && project.value?.customer_id === authStore.user.id
+)
+
+// Отклик текущего фрилансера на этот проект: берём с бэкенда,
+// чтобы после перезагрузки страницы форма отклика не показывалась снова
+const ownProposal = computed(() =>
+  authStore.isFreelancer ? proposalsStore.myProposalForProject : null
 )
 
 const canPropose = computed(
@@ -207,7 +223,8 @@ const canPropose = computed(
     authStore.isFreelancer &&
     project.value?.status === 'open' &&
     project.value?.customer_id !== authStore.user?.id &&
-    !hasProposed.value
+    proposalsStore.myProposalChecked &&
+    !ownProposal.value
 )
 
 const categoryMap = {
@@ -253,12 +270,18 @@ function formatDate(value) {
 async function loadProject() {
   await projectsStore.fetchProjectById(route.params.id)
 
-  // Отклики грузим только для заказчика этого проекта
-  if (
-    authStore.isClient &&
-    projectsStore.currentProject?.customer_id === authStore.user?.id
-  ) {
+  if (!project.value) return
+
+  if (project.value.customer_id === authStore.user?.id) {
+    // Отклики грузим только для заказчика этого проекта
+    proposalsStore.clearMyProposalForProject()
     await proposalsStore.fetchByProject(route.params.id)
+  } else if (authStore.isFreelancer) {
+    // Фрилансеру нужно знать, откликался ли он уже на этот проект
+    await proposalsStore.fetchMyProposalForProject(route.params.id)
+  } else {
+    // Гость или другой пользователь: чужой отклик показывать нельзя
+    proposalsStore.clearMyProposalForProject()
   }
 }
 
@@ -278,16 +301,15 @@ async function handleCancel() {
 }
 
 async function handleProposalSubmit(data) {
-  try {
-    const result = await proposalsStore.createProposal(route.params.id, data)
-    if (result) {
-      hasProposed.value = true
-    }
-  } catch (e) {
-    if (e.response?.status === 409) {
-      hasProposed.value = true
-    }
+  const result = await proposalsStore.createProposal(route.params.id, data)
+
+  if (result) {
+    proposalsStore.setMyProposalForProject(result)
+    return
   }
+
+  // Отклик не создан: возможно, он уже существует (409) — перечитываем состояние
+  await proposalsStore.fetchMyProposalForProject(route.params.id)
 }
 
 async function handleAccept(proposalId) {
@@ -308,6 +330,17 @@ async function handleReject(proposalId) {
 
 onMounted(loadProject)
 watch(() => route.params.id, loadProject)
+
+// Профиль пользователя подгружается асинхронно (см. App.vue), поэтому роль
+// может стать известна уже после первого рендера — тогда добираем свой отклик
+watch(
+  () => authStore.user?.id,
+  (userId) => {
+    if (!userId || !authStore.isFreelancer) return
+    if (proposalsStore.myProposalChecked) return
+    proposalsStore.fetchMyProposalForProject(route.params.id)
+  }
+)
 </script>
 
 <style scoped>

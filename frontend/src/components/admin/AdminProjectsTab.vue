@@ -17,6 +17,17 @@
               @update:model-value="loadProjects"
             />
           </v-col>
+          <v-col cols="12" sm="4">
+            <v-select
+              v-model="stateFilter"
+              :items="stateOptions"
+              label="Состояние"
+              density="compact"
+              variant="outlined"
+              rounded="lg"
+              prepend-inner-icon="mdi-filter-variant"
+            />
+          </v-col>
           <v-col cols="12" sm="4" class="d-flex align-center">
             <v-chip
               size="small"
@@ -24,7 +35,8 @@
               variant="tonal"
               prepend-icon="mdi-briefcase"
             >
-              Всего: {{ adminStore.projectsPagination.total }}
+              Показано: {{ filteredProjects.length }} из
+              {{ adminStore.projectsPagination.total }}
             </v-chip>
           </v-col>
         </v-row>
@@ -38,7 +50,7 @@
     <v-card v-else class="glass fade-in">
       <v-data-table
         :headers="headers"
-        :items="adminStore.projects"
+        :items="filteredProjects"
         :items-per-page="-1"
         hide-default-footer
         class="admin-table"
@@ -67,8 +79,20 @@
           {{ formatDate(item.created_at) }}
         </template>
 
+        <template #item.is_deleted="{ item }">
+          <v-chip
+            :color="item.is_deleted ? 'error' : 'green'"
+            size="small"
+            variant="flat"
+            :prepend-icon="item.is_deleted ? 'mdi-delete-outline' : 'mdi-check-circle'"
+          >
+            {{ item.is_deleted ? 'Удалён' : 'Активен' }}
+          </v-chip>
+        </template>
+
         <template #item.actions="{ item }">
           <v-btn
+            v-if="!item.is_deleted"
             icon
             size="small"
             variant="text"
@@ -79,6 +103,7 @@
           </v-btn>
 
           <v-btn
+            v-if="!item.is_deleted"
             icon
             size="small"
             variant="text"
@@ -86,6 +111,18 @@
             @click.stop="handleDelete(item)"
           >
             <v-icon>mdi-delete</v-icon>
+          </v-btn>
+
+          <v-btn
+            v-else
+            icon
+            size="small"
+            variant="text"
+            color="success"
+            title="Восстановить проект"
+            @click.stop="handleRestore(item)"
+          >
+            <v-icon>mdi-restore</v-icon>
           </v-btn>
         </template>
       </v-data-table>
@@ -103,7 +140,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAdminStore } from '@/stores/admin'
 
@@ -111,6 +148,20 @@ const router = useRouter()
 const adminStore = useAdminStore()
 
 const statusFilter = ref(null)
+// Бэкенд отдаёт и удалённые проекты (их можно восстановить), фильтруем на клиенте
+const stateFilter = ref('active')
+
+const stateOptions = [
+  { title: 'Активные', value: 'active' },
+  { title: 'Удалённые', value: 'deleted' },
+  { title: 'Все', value: 'all' },
+]
+
+const filteredProjects = computed(() => {
+  if (stateFilter.value === 'all') return adminStore.projects
+  const wantDeleted = stateFilter.value === 'deleted'
+  return adminStore.projects.filter((p) => !!p.is_deleted === wantDeleted)
+})
 
 const statusOptions = [
   { title: 'Черновик', value: 'draft' },
@@ -127,6 +178,7 @@ const headers = [
   { title: 'Бюджет', key: 'budget' },
   { title: 'Заказчик', key: 'customer_name' },
   { title: 'Дата', key: 'created_at' },
+  { title: 'Состояние', key: 'is_deleted', sortable: false },
   { title: 'Действия', key: 'actions', sortable: false, align: 'end' },
 ]
 
@@ -178,6 +230,8 @@ function onPageChange(page) {
 }
 
 function handleRowClick(event, { item }) {
+  // Удалённый проект открыть нельзя (бэкенд его не отдаёт) — только восстановить
+  if (item.is_deleted) return
   viewProject(item)
 }
 
@@ -188,6 +242,10 @@ function viewProject(item) {
 async function handleDelete(item) {
   if (!confirm(`Удалить проект "${item.title}"?`)) return
   await adminStore.deleteProject(item.id)
+}
+
+async function handleRestore(item) {
+  await adminStore.restoreProject(item.id)
 }
 
 onMounted(loadProjects)

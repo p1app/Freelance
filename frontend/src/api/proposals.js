@@ -8,6 +8,9 @@ export const proposalsApi = {
     // Мои отклики (только фрилансер)
     myProposals: (params) => api.get('/proposals/me', { params }),
 
+    // Мой отклик на конкретный проект (404, если отклика нет)
+    myProposalByProject: (projectId) => api.get(`/proposals/me/${projectId}`),
+
     // Создать отклик
     create: (projectId, data) =>
         api.post(`/projects/${projectId}/proposals`, data),

@@ -46,8 +46,8 @@
           variant="outlined"
           rounded="lg"
           :disabled="loading"
-          counter="500"
-          maxlength="500"
+          counter="250"
+          maxlength="250"
           auto-grow
         />
 
