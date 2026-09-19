@@ -30,12 +30,29 @@ async def get_proposals_by_freelancer(
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> PaginatedResponse[ProposalResponse]:
-    return await ProposalService.get_my_proposal(
+    return await ProposalService.get_my_proposals(
         session=db,
         current_user=current_user,
         status=status_filter,
         page=page,
         page_size=page_size,
+    )
+
+
+@router.get(
+    path="/proposals/me/{project_id}",
+    response_model=ProposalResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def get_proposal_by_freelancer_by_project(
+    current_user: Annotated[UserModel, Depends(get_current_freelancer)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    project_id: int,
+) -> ProposalResponse:
+    return await ProposalService.get_my_proposal_by_project(
+        session=db,
+        current_user=current_user,
+        project_id=project_id,
     )
 
 

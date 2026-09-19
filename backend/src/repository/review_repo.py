@@ -67,6 +67,7 @@ class ReviewRepository:
         cls,
         session: AsyncSession,
         user_id: int,
+        sort_by_worse: bool = False,
         min_rating: float | None = None,
         max_rating: float | None = None,
         page: int = 1,
@@ -89,6 +90,8 @@ class ReviewRepository:
 
         offset = (page - 1) * page_size
         query = query.offset(offset).limit(page_size)
+        order = cls.model.rating.asc() if sort_by_worse else cls.model.rating.desc()
+        query = query.order_by(order, cls.model.created_at.desc(), cls.model.id.desc())
 
         result = await session.execute(query)
         reviews = result.scalars().all()
@@ -126,14 +129,6 @@ class ReviewRepository:
         query = select(cls.model).where(cls.model.contract_id == contract_id)
         result = await session.execute(query)
         return result.scalars().all()
-
-    @classmethod
-    async def get_average_rating(cls, session: AsyncSession, user_id: int) -> float:
-        query = select(func.avg(cls.model.rating)).where(
-            cls.model.to_user_id == user_id
-        )
-        avg = await session.scalar(query)
-        return avg or 0.0
 
     @classmethod
     async def get_by_contract_and_user(

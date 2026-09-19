@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 from core.database import Base
 from core.enums import MilestoneStatusEnum
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String, Text
+from sqlalchemy import DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 if TYPE_CHECKING:
@@ -20,7 +20,7 @@ class Milestone(Base):
     )
 
     title: Mapped[str] = mapped_column(String(255), nullable=False)
-    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
 
     due_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
@@ -48,9 +48,3 @@ class Milestone(Base):
         if not title or not title.strip():
             raise ValueError("title не может быть пустым")
         return title
-
-    __table_args__ = (
-        CheckConstraint(
-            "due_date > CURRENT_TIMESTAMP", name="ck_milestone_due_date_future"
-        ),
-    )

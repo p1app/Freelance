@@ -51,16 +51,16 @@ class ProjectService:
 
     @classmethod
     async def get_project(
-        cls, session: AsyncSession, project_id: int
+        cls,
+        session: AsyncSession,
+        project_id: int,
+        current_user: UserModel | None,
     ) -> ProjectDetailResponse:
         project = await ProjectRepository.get_by_id(
             session=session, project_id=project_id
         )
         if project is None:
             raise NotFoundError("Project not found")
-        proposals_valid = [
-            ProposalResponse.model_validate(i) for i in project.proposals
-        ]
 
         response = ProjectDetailResponse(
             id=project.id,
@@ -76,12 +76,19 @@ class ProjectService:
             customer_name=project.customer.fullname,
             freelancer_name=None,
             proposal_count=None,
-            proposals=proposals_valid,
+            proposals=None,
         )
-        if project.freelancer_id != None:
-            response.freelancer_name = project.freelancer.fullname  # type: ignore
-        response.proposal_count = len(project.proposals) if project.proposals else 0
-
+        if project.freelancer != None:
+            response.freelancer_name = project.freelancer.fullname
+        if current_user and (
+            current_user.id == project.customer_id
+            or current_user.role == RoleEnum.ADMIN
+        ):
+            proposals_valid = [
+                ProposalResponse.model_validate(i) for i in project.proposals
+            ]
+            response.proposal_count = len(project.proposals) if project.proposals else 0
+            response.proposals = proposals_valid
         return response
 
     @classmethod
@@ -190,10 +197,15 @@ class ProjectService:
 
         if freelancer_id == current_user.id:
             raise BusinessError("The creator of the project cannot be its freelancer")
-
+        if project.status != ProjectStatusEnum.OPEN:  # type: ignore
+            raise BusinessError(
+                'You cannot accept a freelancer if the project status is not "OPEN".'
+            )
         updated_project = await ProjectRepository.assign_freelancer(
             session=session, project_id=project_id, freelancer_id=freelancer_id
         )
+        if updated_project is None:
+            raise ValueError("Project not found")
         return ProjectResponse.model_validate(updated_project)
 
     @classmethod
@@ -203,7 +215,7 @@ class ProjectService:
         filters: ProjectListFilter,
     ) -> PaginatedResponse[ProjectResponse]:
         projects, total = await ProjectRepository.get_open_projects(
-            session=session, page=filters.page, page_size=filters.page_size
+            session=session, data=filters
         )
         if total == None:
             raise ConflictError("total is None")

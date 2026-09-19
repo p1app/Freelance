@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class ProposalCreate(BaseModel):
-    cover_letter: str = Field(min_length=10, max_length=200)
+    cover_letter: str = Field(min_length=10, max_length=1000)
     bid_amount: int = Field(gt=0)
     estimated_days: int
 

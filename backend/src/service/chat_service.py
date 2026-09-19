@@ -75,13 +75,6 @@ class ChatService:
             page=page,
             page_size=page_size,
         )
-
-        await ChatRepository.mark_all_as_read(
-            session=session,
-            contract_id=contract_id,
-            user_id=current_user.id,
-        )
-
         if not messages:
             return PaginatedResponse(
                 items=[],
@@ -90,6 +83,7 @@ class ChatService:
                 page_size=page_size,
                 pages=0,
             )
+        messages = list(reversed(messages))
 
         validate_data = [
             MessageResponse.model_validate(message) for message in messages

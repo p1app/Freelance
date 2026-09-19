@@ -3,9 +3,8 @@ from typing import TYPE_CHECKING
 
 from core.database import Base
 from core.enums import ProjectCategoryEnum, ProjectStatusEnum
-from sqlalchemy import DateTime, ForeignKey, String
+from sqlalchemy import DateTime, ForeignKey, String, false
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
-from sqlalchemy.types import DECIMAL
 
 if TYPE_CHECKING:
     from models.contract_model import Contract  # noqa: TC004
@@ -18,7 +17,7 @@ class Project(Base):
 
     title: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     description: Mapped[str] = mapped_column(nullable=False)
-    budget: Mapped[DECIMAL] = mapped_column(nullable=False)
+    budget: Mapped[int] = mapped_column(nullable=False)
     deadline: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     category: Mapped[ProjectCategoryEnum] = mapped_column(nullable=False)
 
@@ -32,6 +31,10 @@ class Project(Base):
 
     status: Mapped[ProjectStatusEnum] = mapped_column(
         default=ProjectStatusEnum.DRAFT, nullable=False, index=True
+    )
+
+    is_deleted: Mapped[bool] = mapped_column(
+        default=False, server_default=false(), nullable=False
     )
 
     # Связи

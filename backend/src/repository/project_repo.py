@@ -27,6 +27,7 @@ class ProjectRepository:
     async def get_by_id(cls, project_id: int, session: AsyncSession):
         query = (
             select(cls.model)
+            .where(cls.model.is_deleted != True)
             .where(cls.model.id == project_id)
             .options(
                 selectinload(cls.model.customer),
@@ -71,8 +72,14 @@ class ProjectRepository:
         return True
 
     @classmethod
-    async def list(cls, session: AsyncSession, data: ProjectListFilter):
-        query = select(cls.model)
+    async def get_open_projects(cls, session: AsyncSession, data: ProjectListFilter):
+        query = (
+            select(cls.model)
+            .where(cls.model.is_deleted != True)
+            .where(cls.model.status == ProjectStatusEnum.OPEN)
+            .options(selectinload(cls.model.customer))
+            .order_by(cls.model.created_at.desc(), cls.model.id.desc())
+        )
 
         if data.category:
             query = query.where(cls.model.category == data.category)
@@ -90,7 +97,11 @@ class ProjectRepository:
                 )
             )
 
-        count_query = select(func.count()).select_from(cls.model)
+        count_query = (
+            select(func.count())
+            .where(cls.model.is_deleted != True)
+            .where(cls.model.status == ProjectStatusEnum.OPEN)
+        )
         if data.category:
             count_query = count_query.where(cls.model.category == data.category)
         if data.status:
@@ -106,7 +117,6 @@ class ProjectRepository:
                     cls.model.description.ilike(f"%{data.search}%"),
                 )
             )
-
         total = await session.scalar(count_query)
 
         offset = (data.page - 1) * data.page_size
@@ -145,7 +155,7 @@ class ProjectRepository:
             return None
 
         project.status = ProjectStatusEnum.COMPLETED
-        await session.commit()
+        await session.flush()
         await session.refresh(project)
         return project
 
@@ -179,10 +189,9 @@ class ProjectRepository:
 
         if project is None:
             return None
-
-        project.freelancer_id = freelancer_id
         project.status = ProjectStatusEnum.IN_PROGRESS
-        await session.commit()
+        project.freelancer_id = freelancer_id
+        await session.flush()
         await session.refresh(project)
         return project
 
@@ -192,6 +201,7 @@ class ProjectRepository:
     ):
         query = (
             select(cls.model)
+            .where(cls.model.is_deleted != True)
             .where(cls.model.customer_id == customer_id)
             .options(selectinload(cls.model.freelancer))
         )
@@ -217,6 +227,7 @@ class ProjectRepository:
     ):
         query = (
             select(cls.model)
+            .where(cls.model.is_deleted != True)
             .where(cls.model.freelancer_id == freelancer_id)
             .options(selectinload(cls.model.customer))
         )
@@ -233,38 +244,3 @@ class ProjectRepository:
         projects = result.scalars().all()
 
         return projects, total
-
-    @classmethod
-    async def get_open_projects(
-        cls, session: AsyncSession, page: int = 1, page_size: int = 20
-    ):
-        query = (
-            select(cls.model)
-            .where(cls.model.status == ProjectStatusEnum.OPEN)
-            .options(selectinload(cls.model.customer))
-            .order_by(cls.model.created_at.desc())
-        )
-
-        count_query = select(func.count()).where(
-            cls.model.status == ProjectStatusEnum.OPEN
-        )
-        total = await session.scalar(count_query)
-
-        offset = (page - 1) * page_size
-        query = query.offset(offset).limit(page_size)
-
-        result = await session.execute(query)
-        projects = result.scalars().all()
-
-        return projects, total
-
-    @classmethod
-    async def check_contract_exists(
-        cls, project_id: int, session: AsyncSession
-    ) -> bool:
-        query = select(cls.model).where(
-            cls.model.id == project_id,
-            cls.model.contract.isnot(None),
-        )
-        project = await session.scalar(query)
-        return project is not None

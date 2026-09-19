@@ -40,7 +40,7 @@ class MilestoneRepository:
         if milestone is None:
             return None
 
-        update_data = milestone_data.model_dump(exclude_unset=True)
+        update_data = milestone_data.model_dump(exclude_unset=True, exclude_none=True)
         for key, value in update_data.items():
             setattr(milestone, key, value)
 
@@ -73,7 +73,11 @@ class MilestoneRepository:
         total = await session.scalar(count_query)
 
         offset = (page - 1) * page_size
-        query = query.offset(offset).limit(page_size)
+        query = (
+            query.offset(offset)
+            .limit(page_size)
+            .order_by(cls.model.created_at.asc(), cls.model.id.asc())
+        )
 
         result = await session.execute(query)
         milestones = result.scalars().all()
@@ -111,26 +115,6 @@ class MilestoneRepository:
         await session.commit()
         await session.refresh(milestone)
         return milestone
-
-    @classmethod
-    async def get_pending_by_contract(cls, contract_id: int, session: AsyncSession):
-        query = select(cls.model).where(
-            cls.model.contract_id == contract_id,
-            cls.model.status == MilestoneStatusEnum.PENDING,
-        )
-        result = await session.execute(query)
-        return result.scalars().all()
-
-    @classmethod
-    async def get_not_approved_by_contract(
-        cls, contract_id: int, session: AsyncSession
-    ):
-        query = select(cls.model).where(
-            cls.model.contract_id == contract_id,
-            cls.model.status != MilestoneStatusEnum.APPROVED,
-        )
-        result = await session.execute(query)
-        return result.scalars().all()
 
     @classmethod
     async def check_all_approved(cls, contract_id: int, session: AsyncSession) -> bool:

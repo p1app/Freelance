@@ -13,6 +13,7 @@ class ContractResponse(BaseModel):
     customer_id: int
     freelancer_id: int
     final_price: int
+    project_title: str
     start_date: datetime
     end_date: datetime | None
     status: ContractStatusEnum

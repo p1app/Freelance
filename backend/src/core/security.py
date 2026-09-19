@@ -4,9 +4,13 @@ from core.database import get_db
 from core.enums import RoleEnum
 from core.exceptions import ForbiddenError, NotFoundError, UnauthorizedError
 from core.settings import config as Config
-from fastapi import Depends # dishka
-
-from fastapi_jwt_harmony import JWTHarmony, JWTHarmonyDep, JWTHarmonyRefresh
+from fastapi import Depends  # dishka
+from fastapi_jwt_harmony import (
+    JWTHarmony,
+    JWTHarmonyDep,
+    JWTHarmonyOptional,
+    JWTHarmonyRefresh,
+)
 from models.user_model import User
 from passlib.context import CryptContext
 from pydantic import BaseModel
@@ -64,33 +68,29 @@ async def get_current_user(
     user = await UserRepository.get_by_id(session=db, user_id=jwt_user.id)
     if not user:
         raise NotFoundError("User not found")
+    if not user.is_active:
+        raise ForbiddenError("User is blocked")
     return user
 
 
 async def get_current_user_optional(
     db: AsyncSession = Depends(get_db),  # noqa: B008
-    Authorize: JWTHarmony[JWTUser] = Depends(JWTHarmonyDep),  # noqa: B008
+    Authorize: JWTHarmony[JWTUser] = Depends(JWTHarmonyOptional),  # noqa: B008
 ) -> User | None:
     jwt_user = Authorize.user_claims
     if not jwt_user:
-        raise UnauthorizedError("Invalid token")
+        return None
 
     user = await UserRepository.get_by_id(session=db, user_id=jwt_user.id)
     if not user:
         return None
+    if user.is_active == False:
+        raise ForbiddenError("User is blocked")
     return user
 
 
-async def get_current_active_user(
-    current_user: User = Depends(get_current_user),  # noqa: B008
-) -> User:
-    if not current_user.is_active:
-        raise ForbiddenError("User is blocked")
-    return current_user
-
-
 async def get_current_client(
-    current_user: User = Depends(get_current_active_user),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ) -> User:
     if current_user.role != RoleEnum.CLIENT:
         raise ForbiddenError("Client role required")
@@ -98,7 +98,7 @@ async def get_current_client(
 
 
 async def get_current_freelancer(
-    current_user: User = Depends(get_current_active_user),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ) -> User:
     if current_user.role != RoleEnum.FREELANCER:
         raise ForbiddenError("Freelancer role required")
@@ -106,7 +106,7 @@ async def get_current_freelancer(
 
 
 async def get_current_admin(
-    current_user: User = Depends(get_current_active_user),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ) -> User:
     if current_user.role != RoleEnum.ADMIN:
         raise ForbiddenError("Admin role required")

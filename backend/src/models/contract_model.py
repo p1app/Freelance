@@ -5,7 +5,6 @@ from core.database import Base
 from core.enums import ContractStatusEnum
 from sqlalchemy import CheckConstraint, DateTime, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
-from sqlalchemy.types import DECIMAL
 
 if TYPE_CHECKING:
     from models.chat_model import ChatMessage  # noqa: TC004
@@ -32,17 +31,17 @@ class Contract(Base):
         index=True,
     )
     customer_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL"),
+        ForeignKey("users.id", ondelete="RESTRICT"),
         nullable=False,
         index=True,
     )
     freelancer_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL"),
+        ForeignKey("users.id", ondelete="RESTRICT"),
         nullable=False,
         index=True,
     )
 
-    final_price: Mapped[DECIMAL] = mapped_column(nullable=False)
+    final_price: Mapped[int] = mapped_column(nullable=False)
 
     start_date: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

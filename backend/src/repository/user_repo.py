@@ -1,6 +1,6 @@
 from core.enums import RoleEnum
 from models import User
-from schemas.auth_schema import UserRegister
+from schemas.auth_schema import UserRegisterNoPass
 from schemas.user_schema import FreelancerFilter, UserUpdate
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,11 +10,13 @@ class UserRepository:
     model = User
 
     @classmethod
-    async def create(cls, user_data: UserRegister, session: AsyncSession):
+    async def create(
+        cls, user_data: UserRegisterNoPass, session: AsyncSession, hashed_password: str
+    ):
         user = User(
             username=user_data.username,
             email=user_data.email,
-            hashed_password=user_data.password,
+            hashed_password=hashed_password,
             role=user_data.role,
             fullname=user_data.fullname,
         )
@@ -114,9 +116,8 @@ class UserRepository:
             query = query.where(cls.model.role == role)
         if is_active is not None:
             query = query.where(cls.model.is_active == is_active)
-
         offset = (page - 1) * page_size
-        query = query.offset(offset).limit(page_size)
+        query = query.offset(offset).limit(page_size).order_by(cls.model.id.desc())
 
         result = await session.execute(query)
         users = result.scalars().all()
@@ -132,56 +133,43 @@ class UserRepository:
         return users, total
 
     @classmethod
-    async def get_freelancers(cls, session: AsyncSession, data=FreelancerFilter):
-        query = select(cls.model).where(cls.model.role == RoleEnum.FREELANCER)
-
-        if data.min_rating is not None:
-            query = query.where(cls.model.rating >= data.min_rating)
-
-        if data.max_rating is not None:
-            query = query.where(cls.model.rating <= data.max_rating)
-
-        if data.skills:
-            conditions = []
-            for skill in data.skills:
-                conditions.append(cls.model.skills.any(func.lower(skill)))
-            query = query.where(or_(*conditions))
-
-        offset = (data.page - 1) * data.page_size
-        query = query.offset(offset).limit(data.page_size)
-
-        result = await session.execute(query)
-        users = result.scalars().all()
-
-        count_query = select(func.count()).where(cls.model.role == RoleEnum.FREELANCER)
-        if data.min_rating is not None:
-            count_query = count_query.where(cls.model.rating >= data.min_rating)
-        if data.max_rating is not None:
-            count_query = count_query.where(cls.model.rating <= data.max_rating)
-        if data.skills:
-            conditions = []
-            for skill in data.skills:
-                conditions.append(cls.model.skills.any(func.lower(skill)))
-            count_query = count_query.where(func.or_(*conditions))
-
-        total = await session.scalar(count_query)
-
-        return users, total
+    def _skill_condition(cls, skill: str):
+        # EXISTS (SELECT 1 FROM unnest(users.skills) AS s WHERE lower(s) = lower(:skill))
+        s = func.unnest(cls.model.skills).column_valued("s")
+        return select(1).select_from(s).where(func.lower(s) == skill.lower()).exists()
 
     @classmethod
-    async def search_by_skills(
-        cls,
-        session: AsyncSession,
-        skills: list[str],
-        page: int = 1,
-        page_size: int = 20,
-    ):
-        return await cls.get_freelancers(
-            skills=skills,  # type: ignore
-            page=page,  # type: ignore
-            page_size=page_size,  # type: ignore
-            session=session,
+    async def get_freelancers(cls, session: AsyncSession, data: FreelancerFilter):
+        conditions = [cls.model.role == RoleEnum.FREELANCER]
+
+        if data.min_rating is not None:
+            conditions.append(cls.model.rating >= data.min_rating)
+        if data.max_rating is not None:
+            conditions.append(cls.model.rating <= data.max_rating)
+        if data.skills:
+            conditions.append(or_(*[cls._skill_condition(s) for s in data.skills]))
+        if data.search:
+            conditions.append(
+                or_(
+                    cls.model.username.ilike(f"%{data.search}%"),
+                    cls.model.fullname.ilike(f"%{data.search}%"),
+                )
+            )
+
+        total = await session.scalar(
+            select(func.count()).select_from(cls.model).where(*conditions)
         )
+
+        query = (
+            select(cls.model)
+            .where(*conditions)
+            .order_by(cls.model.rating.desc(), cls.model.id.desc())
+            .offset((data.page - 1) * data.page_size)
+            .limit(data.page_size)
+        )
+        users = (await session.execute(query)).scalars().all()
+
+        return users, total or 0
 
     @classmethod
     async def update_rating(cls, session: AsyncSession, user_id: int) -> None:
@@ -204,7 +192,7 @@ class UserRepository:
         if user is None:
             return None
         user.completed_projects += 1
-        await session.commit()
+        await session.flush()
         await session.refresh(user)
         return user
 

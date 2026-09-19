@@ -1,4 +1,4 @@
-from core.enums import ContractStatusEnum, ProjectStatusEnum, RoleEnum  # noqa: N999
+from core.enums import ContractStatusEnum, ProjectStatusEnum, RoleEnum
 from models import Project, User
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -87,7 +87,11 @@ class AdminRepository:
         total = await session.scalar(count_query)
 
         offset = (page - 1) * page_size
-        query = query.offset(offset).limit(page_size)
+        query = (
+            query.offset(offset)
+            .limit(page_size)
+            .order_by(Project.created_at.desc(), Project.id.desc())
+        )
 
         result = await session.execute(query)
         projects = result.scalars().all()
@@ -102,7 +106,19 @@ class AdminRepository:
         if project is None:
             return None
 
-        await session.delete(project)
+        project.is_deleted = True
+        await session.commit()
+        return True
+
+    @classmethod
+    async def restore_project(cls, project_id: int, session: AsyncSession):
+        query = select(Project).where(Project.id == project_id)
+        project = await session.scalar(query)
+
+        if project is None:
+            return None
+
+        project.is_deleted = False
         await session.commit()
         return True
 
@@ -126,13 +142,22 @@ class AdminRepository:
             select(func.count()).select_from(Project)
         )
         stats["open_projects"] = await session.scalar(
-            select(func.count()).where(Project.status == ProjectStatusEnum.OPEN)
+            select(func.count())
+            .where(Project.is_deleted == False)
+            .where(Project.status == ProjectStatusEnum.OPEN)
         )
         stats["in_progress_projects"] = await session.scalar(
-            select(func.count()).where(Project.status == ProjectStatusEnum.IN_PROGRESS)
+            select(func.count())
+            .where(Project.is_deleted == False)
+            .where(Project.status == ProjectStatusEnum.IN_PROGRESS)
         )
         stats["completed_projects"] = await session.scalar(
-            select(func.count()).where(Project.status == ProjectStatusEnum.COMPLETED)
+            select(func.count())
+            .where(Project.is_deleted == False)
+            .where(Project.status == ProjectStatusEnum.COMPLETED)
+        )
+        stats["deleted_projects"] = await session.scalar(
+            select(func.count()).where(Project.is_deleted == True)
         )
 
         # Контракты

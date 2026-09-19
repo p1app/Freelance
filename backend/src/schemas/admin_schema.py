@@ -23,6 +23,7 @@ class AdminProjectResponse(BaseModel):
     budget: int
     customer_name: str
     created_at: datetime
+    is_deleted: bool
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -35,6 +36,7 @@ class PlatformStatsResponse(BaseModel):
     open_projects: int
     in_progress_projects: int
     completed_projects: int
+    deleted_projects: int
     total_contracts: int
     active_contracts: int
     average_rating: float = Field(default=0.0)

@@ -4,12 +4,15 @@ from core.enums import RoleEnum
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
-class UserRegister(BaseModel):
+class UserRegisterNoPass(BaseModel):
     username: str = Field(min_length=3, max_length=30)
     email: EmailStr
-    password: str = Field(min_length=6, max_length=50)
     role: RoleEnum
     fullname: str = Field(min_length=2, max_length=60)
+
+
+class UserRegister(UserRegisterNoPass):
+    password: str = Field(min_length=6, max_length=50)
 
 
 class UserRegisterResponse(BaseModel):

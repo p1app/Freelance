@@ -8,7 +8,12 @@ from core.security import (
 )
 from models.user_model import User
 from repository.user_repo import UserRepository
-from schemas.auth_schema import TokenResponse, UserLogin, UserRegister
+from schemas.auth_schema import (
+    TokenResponse,
+    UserLogin,
+    UserRegister,
+    UserRegisterNoPass,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -29,8 +34,17 @@ class AuthService:
         if email is not None:
             raise BusinessError("Email already exists")
 
-        user_data.password = get_password_hash(user_data.password)
-        created_user = await UserRepository.create(session=session, user_data=user_data)
+        hashed_password = get_password_hash(user_data.password)
+        created_user = await UserRepository.create(
+            session=session,
+            hashed_password=hashed_password,
+            user_data=UserRegisterNoPass(
+                username=user_data.username,
+                email=user_data.email,
+                role=user_data.role,
+                fullname=user_data.fullname,
+            ),
+        )
 
         payload = JWTUser(id=created_user.id, role=created_user.role)
         access = create_access_token(payload)

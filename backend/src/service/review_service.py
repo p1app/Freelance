@@ -1,4 +1,3 @@
-from operator import attrgetter
 from typing import Literal
 
 from core.enums import ContractStatusEnum
@@ -102,6 +101,7 @@ class ReviewService:
         reviews, total = await ReviewRepository.list_by_user(
             session=session,
             user_id=user_id,
+            sort_by_worse=sort_by_worse,
             min_rating=min_rating,
             max_rating=max_rating,
             page=page,
@@ -109,11 +109,6 @@ class ReviewService:
         )
 
         validate_data = [ReviewResponse.model_validate(review) for review in reviews]
-
-        if sort_by_worse:
-            validate_data.sort(key=attrgetter("rating"))
-        else:
-            validate_data.sort(key=attrgetter("rating"), reverse=True)
 
         return PaginatedResponse(
             items=validate_data,

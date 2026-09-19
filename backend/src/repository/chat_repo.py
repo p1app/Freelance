@@ -33,7 +33,9 @@ class ChatRepository:
         query = (
             select(cls.model)
             .where(cls.model.contract_id == contract_id)
-            .order_by(cls.model.created_at.asc())
+            .order_by(
+                cls.model.created_at.desc(), cls.model.id.desc()
+            )  # id как тайбрейкер: created_at может совпасть
         )
 
         count_query = select(func.count()).where(cls.model.contract_id == contract_id)
@@ -85,25 +87,6 @@ class ChatRepository:
             cls.model.is_read == False,
         )
         return await session.scalar(query) or 0
-
-    @classmethod
-    async def get_last_message(cls, contract_id: int, session: AsyncSession):
-        query = (
-            select(cls.model)
-            .where(cls.model.contract_id == contract_id)
-            .order_by(cls.model.created_at.desc())
-            .limit(1)
-        )
-        return await session.scalar(query)
-
-    @classmethod
-    async def get_unread_by_user(cls, user_id: int, session: AsyncSession):
-        query = select(cls.model).where(
-            cls.model.sender_id != user_id,
-            cls.model.is_read == False,
-        )
-        result = await session.execute(query)
-        return result.scalars().all()
 
     @classmethod
     async def get_by_id(cls, session: AsyncSession, message_id: int):

@@ -34,7 +34,6 @@ class ContractService:
             raise NotFoundError("Proposal not found")
         if proposal.status != ProposalStatusEnum.ACCEPTED:
             raise BusinessError("Only accepted proposals can create a contract")
-
         if contract_data.final_price <= 0:
             raise ValidationError("final_price must be greater than 0")
 
@@ -169,20 +168,25 @@ class ContractService:
             raise BusinessError(
                 "You will not be able to complete into a contract until the status of all stages has been approved."
             )
-        compeleted_contract = await ContractRepository.complete(
-            contract_id, session=session
-        )
-        if compeleted_contract is None:
-            raise ConflictError("new contract is none")
-        await ProjectRepository.complete(
-            session=session, project_id=contract.project_id
-        )
+        try:
+            compeleted_contract = await ContractRepository.complete(
+                contract_id, session=session
+            )
+            if compeleted_contract is None:
+                raise ConflictError("new contract is none")
+            await ProjectRepository.complete(
+                session=session, project_id=contract.project_id
+            )
 
-        await UserRepository.increment_completed_projects(
-            session=session, user_id=contract.freelancer_id
-        )
+            await UserRepository.increment_completed_projects(
+                session=session, user_id=contract.freelancer_id
+            )
+            await session.commit()
 
-        return ContractResponse.model_validate(compeleted_contract)
+            return ContractResponse.model_validate(compeleted_contract)
+        except Exception:
+            await session.rollback()
+            raise
 
     @classmethod
     async def cancel_contract(

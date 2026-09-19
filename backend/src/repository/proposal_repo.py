@@ -1,7 +1,7 @@
 from core.enums import ProposalStatusEnum
 from models import Proposal
 from schemas.proposal_schema import ProposalCreate, ProposalUpdate
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -33,6 +33,25 @@ class ProposalRepository:
         query = (
             select(cls.model)
             .where(cls.model.id == proposal_id)
+            .options(
+                selectinload(cls.model.project),
+                selectinload(cls.model.freelancer),
+            )
+        )
+        return await session.scalar(query)
+
+    @classmethod
+    async def get_by_user_by_project(
+        cls, session: AsyncSession, user_id: int, project_id: int
+    ):
+        query = (
+            select(cls.model)
+            .where(
+                and_(
+                    cls.model.freelancer_id == user_id,
+                    cls.model.project_id == project_id,
+                )
+            )
             .options(
                 selectinload(cls.model.project),
                 selectinload(cls.model.freelancer),
@@ -104,7 +123,11 @@ class ProposalRepository:
         total = await session.scalar(count_query)
 
         offset = (page - 1) * page_size
-        query = query.offset(offset).limit(page_size)
+        query = (
+            query.offset(offset)
+            .limit(page_size)
+            .order_by(cls.model.created_at.desc(), cls.model.id.desc())
+        )
 
         result = await session.execute(query)
         proposals = result.scalars().all()
@@ -137,7 +160,11 @@ class ProposalRepository:
         total = await session.scalar(count_query)
 
         offset = (page - 1) * page_size
-        query = query.offset(offset).limit(page_size)
+        query = (
+            query.offset(offset)
+            .limit(page_size)
+            .order_by(cls.model.created_at.desc(), cls.model.id.desc())
+        )
 
         result = await session.execute(query)
         proposals = result.scalars().all()
@@ -155,7 +182,7 @@ class ProposalRepository:
             return None
 
         proposal.status = ProposalStatusEnum.ACCEPTED
-        await session.commit()
+        await session.flush()
         await session.refresh(proposal)
         return proposal
 
@@ -205,7 +232,7 @@ class ProposalRepository:
         for proposal in proposals:
             proposal.status = ProposalStatusEnum.REJECTED
 
-        await session.commit()
+        await session.flush()
 
     @classmethod
     async def reject_all(cls, session: AsyncSession, project_id: int):
@@ -228,22 +255,5 @@ class ProposalRepository:
             cls.model.freelancer_id == freelancer_id,
             cls.model.project_id == project_id,
             cls.model.status != ProposalStatusEnum.WITHDRAWN,
-        )
-        return await session.scalar(query)
-
-    @classmethod
-    async def get_pending_by_project(cls, session: AsyncSession, project_id: int):
-        query = select(cls.model).where(
-            cls.model.project_id == project_id,
-            cls.model.status == ProposalStatusEnum.PENDING,
-        )
-        result = await session.execute(query)
-        return result.scalars().all()
-
-    @classmethod
-    async def get_accepted_by_project(cls, session: AsyncSession, project_id: int):
-        query = select(cls.model).where(
-            cls.model.project_id == project_id,
-            cls.model.status == ProposalStatusEnum.ACCEPTED,
         )
         return await session.scalar(query)

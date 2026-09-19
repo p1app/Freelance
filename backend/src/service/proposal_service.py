@@ -180,34 +180,38 @@ class ProposalService:
         )
         if contract_exists:
             raise BusinessError("This project already has a contract")
+        try:
+            await ProposalRepository.accept(session=session, proposal_id=proposal_id)
 
-        await ProposalRepository.accept(session=session, proposal_id=proposal_id)
+            await ProposalRepository.reject_others(
+                session=session,
+                project_id=proposal.project_id,
+                exclude_proposal_id=proposal_id,
+            )
 
-        await ProposalRepository.reject_others(
-            session=session,
-            project_id=proposal.project_id,
-            exclude_proposal_id=proposal_id,
-        )
+            await ProjectService.assign_freelancer(
+                session=session,
+                current_user=current_user,
+                project_id=proposal.project_id,
+                freelancer_id=proposal.freelancer_id,
+            )
 
-        await ProjectService.assign_freelancer(
-            session=session,
-            current_user=current_user,
-            project_id=proposal.project_id,
-            freelancer_id=proposal.freelancer_id,
-        )
+            contract_data = ContractCreate(
+                proposal_id=proposal_id,
+                project_id=proposal.project_id,
+                customer_id=project.customer_id,
+                freelancer_id=proposal.freelancer_id,
+                final_price=proposal.bid_amount,
+            )
 
-        contract_data = ContractCreate(
-            proposal_id=proposal_id,
-            project_id=proposal.project_id,
-            customer_id=project.customer_id,
-            freelancer_id=proposal.freelancer_id,
-            final_price=proposal.bid_amount,
-        )
-
-        contract = await ContractService.create_contract(
-            session=session, contract_data=contract_data
-        )
-        return contract
+            contract = await ContractService.create_contract(
+                session=session, contract_data=contract_data
+            )
+            await session.commit()
+            return contract
+        except Exception:
+            await session.rollback()
+            raise
 
     @classmethod
     async def reject_proposal(
@@ -237,7 +241,7 @@ class ProposalService:
         return ProposalResponse.model_validate(rejected_proposal)
 
     @classmethod
-    async def get_my_proposal(
+    async def get_my_proposals(
         cls,
         session: AsyncSession,
         current_user: UserModel,
@@ -267,3 +271,17 @@ class ProposalService:
             page_size=page_size,
             pages=(total + page_size - 1) // page_size,
         )
+
+    @classmethod
+    async def get_my_proposal_by_project(
+        cls,
+        session: AsyncSession,
+        current_user: UserModel,
+        project_id: int,
+    ) -> ProposalResponse:
+        proposal = await ProposalRepository.get_by_user_by_project(
+            session=session, user_id=current_user.id, project_id=project_id
+        )
+        if proposal is None:
+            raise NotFoundError("Proposal not found")
+        return ProposalResponse.model_validate(proposal)

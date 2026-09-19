@@ -5,12 +5,12 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class ReviewCreate(BaseModel):
-    rating: float = Field(ge=1.0, le=5.0)
+    rating: int = Field(ge=1, le=5)
     comment: str | None = Field(default=None, max_length=250)
 
 
 class ReviewUpdate(BaseModel):
-    rating: float | None = Field(default=None, ge=1.0, le=5.0)
+    rating: int | None = Field(default=None, ge=1, le=5)
     comment: str | None = Field(default=None, max_length=250)
 
     @model_validator(mode="after")
@@ -27,7 +27,7 @@ class ReviewResponse(BaseModel):
     from_user_name: str
     to_user_id: int
     to_user_name: str
-    rating: float
+    rating: int
     comment: str | None
     created_at: datetime
 

@@ -4,6 +4,7 @@ from core.database import get_db
 from core.security import (
     get_current_client,
     get_current_freelancer,
+    get_current_user_optional,
 )
 from fastapi import APIRouter, Depends, Query, status
 from models.user_model import User as UserModel
@@ -69,8 +70,9 @@ async def get_working_projects(
 async def get_project(
     project_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[UserModel | None, Depends(get_current_user_optional)],
 ) -> ProjectDetailResponse:
-    return await ProjectService.get_project(db, project_id)
+    return await ProjectService.get_project(db, project_id, current_user)
 
 
 @router.post(
@@ -138,19 +140,3 @@ async def cancel_project(
     current_user: Annotated[UserModel, Depends(get_current_client)],
 ) -> ProjectResponse:
     return await ProjectService.cancel_project(db, current_user, project_id)
-
-
-@router.patch(
-    path="/{project_id}/assign",
-    response_model=ProjectResponse,
-    status_code=status.HTTP_200_OK,
-)
-async def assign_freelancer(
-    project_id: int,
-    freelancer_id: Annotated[int, Query(gt=0)],
-    db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[UserModel, Depends(get_current_client)],
-) -> ProjectResponse:
-    return await ProjectService.assign_freelancer(
-        db, current_user, project_id, freelancer_id
-    )

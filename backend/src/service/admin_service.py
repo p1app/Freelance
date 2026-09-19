@@ -124,6 +124,18 @@ class AdminService:
         return result
 
     @classmethod
+    async def restore_project(
+        cls, current_user: UserModel, project_id: int, session: AsyncSession
+    ) -> Literal[True]:
+        _check_admin_privileges(current_user)
+        result = await AdminRepository.restore_project(
+            project_id=project_id, session=session
+        )
+        if result is None:
+            raise NotFoundError("project not found")
+        return result
+
+    @classmethod
     async def get_stats(
         cls, session: AsyncSession, current_user: UserModel
     ) -> PlatformStatsResponse:

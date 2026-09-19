@@ -129,6 +129,23 @@ async def delete_project(
     )
 
 
+@router.patch(
+    path="/projects/{project_id}/restore",
+    response_model=bool,
+    status_code=status.HTTP_200_OK,
+)
+async def restore_project(
+    project_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[UserModel, Depends(get_current_admin)],
+) -> bool:
+    return await AdminService.restore_project(
+        current_user=current_user,
+        project_id=project_id,
+        session=db,
+    )
+
+
 @router.get(
     path="/stats",
     response_model=PlatformStatsResponse,

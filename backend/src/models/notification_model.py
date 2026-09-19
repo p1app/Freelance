@@ -2,4 +2,4 @@ from core.database import Base
 
 
 class Notification(Base):
-    pass
+    __tablename__ = "notifications"

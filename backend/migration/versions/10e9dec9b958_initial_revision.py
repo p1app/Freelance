@@ -1,8 +1,8 @@
-"""fix relashonship11
+"""Initial revision
 
-Revision ID: 02f1b3e821ad
-Revises: 758054373eef
-Create Date: 2026-09-11 21:56:25.618826
+Revision ID: 10e9dec9b958
+Revises: 
+Create Date: 2026-09-19 18:25:27.832629
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '02f1b3e821ad'
-down_revision: Union[str, Sequence[str], None] = '758054373eef'
+revision: str = '10e9dec9b958'
+down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -30,11 +30,11 @@ def upgrade() -> None:
     sa.Column('bio', sa.String(), nullable=True),
     sa.Column('skills', sa.ARRAY(sa.String()), nullable=True),
     sa.Column('rating', sa.Float(), nullable=False),
-    sa.Column('compeleted_projects', sa.Integer(), nullable=False),
+    sa.Column('completed_projects', sa.Integer(), server_default='0', nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
@@ -43,14 +43,15 @@ def upgrade() -> None:
     sa.Column('title', sa.String(length=255), nullable=False),
     sa.Column('description', sa.String(), nullable=False),
     sa.Column('budget', sa.Integer(), nullable=False),
-    sa.Column('deadline', sa.DateTime(), nullable=False),
+    sa.Column('deadline', sa.DateTime(timezone=True), nullable=False),
     sa.Column('category', sa.Enum('DEVELOPMENT', 'DESIGN', 'MARKETING', 'WRITING', 'OTHER', name='projectcategoryenum'), nullable=False),
     sa.Column('customer_id', sa.Integer(), nullable=False),
     sa.Column('freelancer_id', sa.Integer(), nullable=True),
     sa.Column('status', sa.Enum('DRAFT', 'OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', name='projectstatusenum'), nullable=False),
+    sa.Column('is_deleted', sa.Boolean(), server_default=sa.text('false'), nullable=False),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['customer_id'], ['users.id'], ),
     sa.ForeignKeyConstraint(['freelancer_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -67,8 +68,8 @@ def upgrade() -> None:
     sa.Column('estimated_days', sa.Integer(), nullable=False),
     sa.Column('status', sa.Enum('PENDING', 'ACCEPTED', 'REJECTED', 'WITHDRAWN', name='proposalstatusenum'), nullable=False),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['freelancer_id'], ['users.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
@@ -87,11 +88,11 @@ def upgrade() -> None:
     sa.Column('end_date', sa.DateTime(timezone=True), nullable=True),
     sa.Column('status', sa.Enum('ACTIVE', 'COMPLETED', 'CANCELLED', name='contractstatusenum'), nullable=False),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.CheckConstraint('final_price > 0', name='ck_contract_final_price_positive'),
-    sa.ForeignKeyConstraint(['customer_id'], ['users.id'], ondelete='SET NULL'),
-    sa.ForeignKeyConstraint(['freelancer_id'], ['users.id'], ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['customer_id'], ['users.id'], ondelete='RESTRICT'),
+    sa.ForeignKeyConstraint(['freelancer_id'], ['users.id'], ondelete='RESTRICT'),
     sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['proposal_id'], ['proposals.id'], ondelete='RESTRICT'),
     sa.PrimaryKeyConstraint('id')
@@ -106,8 +107,8 @@ def upgrade() -> None:
     sa.Column('message', sa.Text(), nullable=False),
     sa.Column('is_read', sa.Boolean(), nullable=False),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['contract_id'], ['contracts.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['sender_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
@@ -117,13 +118,12 @@ def upgrade() -> None:
     op.create_table('milestones',
     sa.Column('contract_id', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(length=255), nullable=False),
-    sa.Column('description', sa.Text(), nullable=True),
+    sa.Column('description', sa.Text(), nullable=False),
     sa.Column('due_date', sa.DateTime(timezone=True), nullable=False),
     sa.Column('status', sa.Enum('PENDING', 'COMPLETED', 'APPROVED', name='milestonestatusenum'), nullable=False),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.CheckConstraint('due_date > CURRENT_TIMESTAMP', name='ck_milestone_due_date_future'),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['contract_id'], ['contracts.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
@@ -135,8 +135,8 @@ def upgrade() -> None:
     sa.Column('rating', sa.Integer(), nullable=False),
     sa.Column('comment', sa.Text(), nullable=True),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.CheckConstraint('rating BETWEEN 1 AND 5', name='ck_review_rating_range'),
     sa.ForeignKeyConstraint(['contract_id'], ['contracts.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['from_user_id'], ['users.id'], ondelete='CASCADE'),
