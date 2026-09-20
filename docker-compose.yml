@@ -23,7 +23,7 @@ services:
   frontend:
     build: ./frontend/.
     ports:
-      - "5173"
+      - "5173:5173"
     env_file:
       - env_files_for_docker/frontend.env
     restart: unless-stopped
@@ -43,7 +43,7 @@ services:
     env_file:
       - env_files_for_docker/pg.env
     networks:
-      - backend
+      - freelance
     volumes:
       - pgdata:/var/lib/postgresql
     healthcheck:
@@ -56,6 +56,8 @@ services:
   redis:
     image: redis:8-alpine
     container_name: redis
+    networks:
+      - freelance
     ports:
       - "6379"
     healthcheck:
