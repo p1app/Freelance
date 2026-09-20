@@ -47,7 +47,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U admin -d taskmanager" ]
+      test: [ "CMD-SHELL", "pg_isready -U admin -d freelance" ]
       interval: 1m30s
       timeout: 30s
       retries: 5
