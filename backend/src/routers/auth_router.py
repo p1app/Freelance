@@ -1,10 +1,10 @@
 from typing import Annotated
 
 from core.database import get_db
-from core.security import JWTUser, get_current_user
+from core.exceptions import ConflictError
+from core.security import JWTUser
 from fastapi import APIRouter, Depends, status
-from fastapi_jwt_harmony import JWTHarmony, JWTHarmonyRefresh
-from models.user_model import User as UserModel
+from fastapi_jwt_harmony import JWTHarmony, JWTHarmonyDep, JWTHarmonyRefresh
 from schemas.auth_schema import TokenResponse, UserLogin, UserRegister
 from service.auth_service import AuthService
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -37,11 +37,15 @@ async def refresh(
     Authorize: Annotated[JWTHarmony[JWTUser], Depends(JWTHarmonyRefresh)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> TokenResponse:
-    return await AuthService.refresh(db, Authorize.user_claims)
+    response = await AuthService.refresh(db, Authorize.user_claims)
+    await AuthService.logout(Authorize.get_raw_jwt())
+    return response
 
 
-@router.post(path="/logout", status_code=status.HTTP_200_OK)
-async def logout(
-    current_user: Annotated[UserModel, Depends(get_current_user)],
-):
-    return await AuthService.logout(current_user)
+@router.post("/logout")
+async def logout(authorize: Annotated[JWTHarmony[JWTUser], Depends(JWTHarmonyDep)]):
+    try:
+        await AuthService.logout(authorize.get_raw_jwt())
+        return {"message": "Вы успешно вышли из системы"}
+    except:  # noqa: E722
+        raise ConflictError("Conflict in logout")

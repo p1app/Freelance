@@ -40,13 +40,9 @@ def send_email_message(to_email: str, username: str):
         server.sendmail(SENDER_EMAIL, to_email, msg.as_string())
 
         print("Письмо успешно отправлено!")
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         print(f"Произошла ошибка при отправке: {e}")
-        # Если это задача Celery (судя по @app.task), правильнее возбудить исключение для retry:
-        # raise
+        raise
     finally:
         if server:
-            try:
-                server.quit()
-            except Exception:  # noqa: BLE001, S110
-                pass
+            server.quit()

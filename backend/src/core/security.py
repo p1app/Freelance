@@ -1,8 +1,10 @@
 from datetime import timedelta
 
+import redis
 from core.database import get_db
 from core.enums import RoleEnum
 from core.exceptions import ForbiddenError, NotFoundError, UnauthorizedError
+from core.settings import config
 from core.settings import config as Config
 from fastapi import Depends  # dishka
 from fastapi_jwt_harmony import (
@@ -18,6 +20,15 @@ from repository.user_repo import UserRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+
+redis_client = redis.Redis(
+    host=config.redis.host, port=config.redis.port, db=1, decode_responses=True
+)
+
+
+def check_if_token_revoked(jwt_payload: dict) -> bool:
+    jti = jwt_payload["jti"]
+    return redis_client.exists(f"revoked_token:{jti}") > 0
 
 
 def get_password_hash(password: str) -> str:
@@ -43,7 +54,9 @@ JWTHarmony.configure(
         "token_location": {"headers"},
         "header_name": "Authorization",
         "header_type": "Bearer",
+        "denylist_enabled": True,
     },
+    denylist_callback=check_if_token_revoked,
 )
 
 

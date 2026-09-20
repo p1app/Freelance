@@ -1,13 +1,20 @@
+import time
+
 from core.email_message import send_email_message
-from core.exceptions import BusinessError, ForbiddenError, UnauthorizedError
+from core.exceptions import (
+    BusinessError,
+    ConflictError,
+    ForbiddenError,
+    UnauthorizedError,
+)
 from core.security import (
     JWTUser,
     create_access_token,
     create_refresh_token,
     get_password_hash,
+    redis_client,
     verify_password,
 )
-from models.user_model import User
 from repository.user_repo import UserRepository
 from schemas.auth_schema import (
     TokenResponse,
@@ -50,8 +57,10 @@ class AuthService:
         payload = JWTUser(id=created_user.id, role=created_user.role)
         access = create_access_token(payload)
         refresh = create_refresh_token(payload)
-
-        send_email_message.delay(user_data.email, user_data.username)
+        try:
+            send_email_message.delay(user_data.email, user_data.username)
+        except Exception as e:  # noqa: BLE001
+            raise ConflictError(f"error when sending email message {e}")
         return TokenResponse(access_token=access, refresh_token=refresh)
 
     @classmethod
@@ -77,7 +86,6 @@ class AuthService:
     async def refresh(
         cls, session: AsyncSession, jwt_user: JWTUser | None
     ) -> TokenResponse:
-        # jwt_user уже проверен через JWTHarmonyRefresh
         if jwt_user is None:
             raise ForbiddenError("Token not available")
         user = await UserRepository.get_by_id(session=session, user_id=jwt_user.id)
@@ -95,5 +103,14 @@ class AuthService:
         )
 
     @classmethod
-    async def logout(cls, current_user: User) -> dict:
-        return {"message": "Logged out successfully"}
+    async def logout(cls, raw_jwt: dict | None):
+        if raw_jwt is None:
+            raise ForbiddenError("token is not valid")
+        jti: str = raw_jwt.get("jti")  # type: ignore
+        exp: int = raw_jwt.get("exp")  # type: ignore
+        now = int(time.time())
+        ttl = exp - now
+
+        if ttl > 0:
+            redis_client.set(f"revoked_token:{jti}", "true", ex=ttl)
+        return True
