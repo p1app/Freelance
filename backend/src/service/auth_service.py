@@ -23,16 +23,16 @@ class AuthService:
     async def register(
         cls, session: AsyncSession, user_data: UserRegister
     ) -> TokenResponse:
-        username = await UserRepository.get_by_username(
+        username_exists = await UserRepository.get_by_username(
             session=session, username=user_data.username
         )
-        if username is not None:
+        if username_exists is not None:
             raise BusinessError("Username already exists")
 
-        email = await UserRepository.get_by_email(
+        email_exists = await UserRepository.get_by_email(
             session=session, email=user_data.email
         )
-        if email is not None:
+        if email_exists is not None:
             raise BusinessError("Email already exists")
 
         hashed_password = get_password_hash(user_data.password)
