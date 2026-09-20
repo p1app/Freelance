@@ -1,3 +1,4 @@
+from core.email_message import send_email_message
 from core.exceptions import BusinessError, ForbiddenError, UnauthorizedError
 from core.security import (
     JWTUser,
@@ -50,7 +51,7 @@ class AuthService:
         access = create_access_token(payload)
         refresh = create_refresh_token(payload)
 
-        # send_email_message.delay(user_data.email, user_data.username)
+        send_email_message.delay(user_data.email, user_data.username)
         return TokenResponse(access_token=access, refresh_token=refresh)
 
     @classmethod

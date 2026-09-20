@@ -7,7 +7,7 @@ from core.settings import config
 
 app = Celery(
     "email",
-    broker=f"redis://:{config.redis.host}:{config.redis.port}/0",
+    broker=f"redis://{config.redis.host}:{config.redis.port}/0",
 )
 
 SMTP_SERVER = "smtp.gmail.com"
@@ -17,7 +17,7 @@ PASSWORD = config.email.password
 
 
 @app.task
-async def send_email_message(to_email: str, username: str):
+def send_email_message(to_email: str, username: str):
 
     msg = MIMEMultipart()
     msg["From"] = SENDER_EMAIL
