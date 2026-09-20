@@ -37,9 +37,7 @@ async def refresh(
     Authorize: Annotated[JWTHarmony[JWTUser], Depends(JWTHarmonyRefresh)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> TokenResponse:
-    response = await AuthService.refresh(db, Authorize.user_claims)
-    await AuthService.logout(Authorize.get_raw_jwt())
-    return response
+    return await AuthService.refresh(db, Authorize.user_claims)
 
 
 @router.post("/logout")
