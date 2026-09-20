@@ -1,0 +1,8 @@
+.venv
+*/README
+*/*.md
+*/.gitignore
+example.env
+.gitignore
+*/node_modules/*
+.env

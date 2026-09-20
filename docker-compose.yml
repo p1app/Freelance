@@ -1,0 +1,75 @@
+services:
+  backend:
+    build: ./backend/.
+    ports:
+      - "8000"
+    env_file:
+      - env_files_for_docker/backend.env
+    restart: unless-stopped
+    networks:
+      - freelance
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" ]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend/.
+    ports:
+      - "5173"
+    env_file:
+      - env_files_for_docker/frontend.env
+    restart: unless-stopped
+    networks:
+      - freelance
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+
+  db:
+    image: postgres:18-alpine
+    container_name: db
+    env_file:
+      - env_files_for_docker/pg.env
+    networks:
+      - backend
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U admin -d taskmanager" ]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:8-alpine
+    container_name: redis
+    ports:
+      - "6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
+networks:
+  freelance:
+    driver: bridge
+
+volumes:
+  pgdata:
+    name: freelance_pgdata
+    external: true
