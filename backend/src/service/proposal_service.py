@@ -66,7 +66,7 @@ class ProposalService:
                 session=session,
                 data=NotificationCreateProposal(
                     type=NotificationTypeEnum.PROPOSAL,
-                    to_user_id=freelancer_id,
+                    to_user_id=project.customer_id,
                     project_id=project_id,
                     description="На ваш проект пришел новый отклик.",
                 ),

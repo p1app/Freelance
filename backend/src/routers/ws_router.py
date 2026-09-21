@@ -93,6 +93,10 @@ async def websocket_endpoint_chat(
             raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION)
 
         await ws_manager_chat.connect(contract_id, websocket)
+        if contract.customer_id == user.id:
+            to_user_id = contract.freelancer_id
+        else:
+            to_user_id = contract.customer_id
 
         while True:
             raw = await websocket.receive_text()
@@ -121,7 +125,7 @@ async def websocket_endpoint_chat(
                 session=db,
                 data=NotificationCreateMessage(
                     type=NotificationTypeEnum.MESSAGE,
-                    to_user_id=user.id,
+                    to_user_id=to_user_id,
                     contract_id=contract.id,
                     description="Вам пришло новое сообщение",
                 ),
