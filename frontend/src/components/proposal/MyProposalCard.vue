@@ -57,7 +57,8 @@
         size="small"
         variant="text"
         color="error"
-        @click.stop="handleWithdraw"
+        title="Отозвать отклик"
+        @click.stop.prevent="handleWithdraw"
       >
         <v-icon>mdi-cancel</v-icon>
       </v-btn>
