@@ -35,4 +35,4 @@ class ConnectionManager:
             await self.disconnect(contract_id, conn)
 
 
-ws_manager = ConnectionManager()
+ws_manager_chat = ConnectionManager()

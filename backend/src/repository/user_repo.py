@@ -102,37 +102,6 @@ class UserRepository:
         return True
 
     @classmethod
-    async def list(
-        cls,
-        session: AsyncSession,
-        page: int = 1,
-        page_size: int = 20,
-        role: RoleEnum | None = None,
-        is_active: bool | None = None,
-    ):
-        query = select(cls.model)
-
-        if role is not None:
-            query = query.where(cls.model.role == role)
-        if is_active is not None:
-            query = query.where(cls.model.is_active == is_active)
-        offset = (page - 1) * page_size
-        query = query.offset(offset).limit(page_size).order_by(cls.model.id.desc())
-
-        result = await session.execute(query)
-        users = result.scalars().all()
-
-        count_query = select(func.count()).select_from(cls.model)
-        if role is not None:
-            count_query = count_query.where(cls.model.role == role)
-        if is_active is not None:
-            count_query = count_query.where(cls.model.is_active == is_active)
-
-        total = await session.scalar(count_query)
-
-        return users, total
-
-    @classmethod
     def _skill_condition(cls, skill: str):
         # EXISTS (SELECT 1 FROM unnest(users.skills) AS s WHERE lower(s) = lower(:skill))
         s = func.unnest(cls.model.skills).column_valued("s")

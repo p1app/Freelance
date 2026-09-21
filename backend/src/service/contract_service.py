@@ -1,4 +1,9 @@
-from core.enums import ContractRoleUserEnum, ContractStatusEnum, ProposalStatusEnum
+from core.enums import (
+    ContractRoleUserEnum,
+    ContractStatusEnum,
+    NotificationTypeEnum,
+    ProposalStatusEnum,
+)
 from core.exceptions import (
     BusinessError,
     ConflictError,
@@ -16,8 +21,10 @@ from schemas.contract_schema import (
     ContractDetailResponse,
     ContractResponse,
 )
+from schemas.notification_schema import NotificationCreateContract
 from schemas.pagination_schema import PaginatedResponse
 from service.milestone_service import MilestonService
+from service.notification_service import NotificationService
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -185,6 +192,24 @@ class ContractService:
                 session=session, user_id=contract.customer_id
             )
             await session.commit()
+            await NotificationService.create_for_contract(
+                session=session,
+                data=NotificationCreateContract(
+                    type=NotificationTypeEnum.CONTRACT,
+                    to_user_id=contract.freelancer_id,
+                    contract_id=contract.id,
+                    description="Ваш контракт успешно завершен",
+                ),
+            )
+            await NotificationService.create_for_contract(
+                session=session,
+                data=NotificationCreateContract(
+                    type=NotificationTypeEnum.CONTRACT,
+                    to_user_id=contract.customer_id,
+                    contract_id=contract.id,
+                    description="Ваш контракт успешно завершен",
+                ),
+            )
 
             return ContractResponse.model_validate(compeleted_contract)
         except Exception:
@@ -219,5 +244,23 @@ class ContractService:
 
         canceled_contract = await ContractRepository.cancel(
             session=session, contract_id=contract_id
+        )
+        await NotificationService.create_for_contract(
+            session=session,
+            data=NotificationCreateContract(
+                type=NotificationTypeEnum.CONTRACT,
+                to_user_id=contract.freelancer_id,
+                contract_id=contract.id,
+                description="Ваш контракт отменен",
+            ),
+        )
+        await NotificationService.create_for_contract(
+            session=session,
+            data=NotificationCreateContract(
+                type=NotificationTypeEnum.CONTRACT,
+                to_user_id=contract.customer_id,
+                contract_id=contract.id,
+                description="Ваш контракт отменен",
+            ),
         )
         return ContractResponse.model_validate(canceled_contract)

@@ -1,6 +1,6 @@
 from typing import Literal
 
-from core.enums import ContractStatusEnum, MilestoneStatusEnum
+from core.enums import ContractStatusEnum, MilestoneStatusEnum, NotificationTypeEnum
 from core.exceptions import BusinessError, ConflictError, ForbiddenError, NotFoundError
 from models.user_model import User as UserModel
 from repository.contract_repo import ContractRepository
@@ -10,7 +10,9 @@ from schemas.milestone_schema import (
     MilestoneResponse,
     MilestoneUpdate,
 )
+from schemas.notification_schema import NotificationCreateMilestone
 from schemas.pagination_schema import PaginatedResponse
+from service.notification_service import NotificationService
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -38,6 +40,15 @@ class MilestonService:
             )
         milestone = await MilestoneRepository.create(
             milestone_data=milestone_data, contract_id=contract_id, session=session
+        )
+        await NotificationService.create_for_contract(
+            session=session,
+            data=NotificationCreateMilestone(
+                type=NotificationTypeEnum.MILESTONE,
+                to_user_id=contract.customer_id,
+                contract_id=contract.id,
+                description="Создан новый этап",
+            ),
         )
         return MilestoneResponse.model_validate(milestone)
 
@@ -132,6 +143,15 @@ class MilestonService:
         updated_milestone = await MilestoneRepository.update(
             milestone_data=data, session=session, milestone_id=milestone_id
         )
+        await NotificationService.create_for_contract(
+            session=session,
+            data=NotificationCreateMilestone(
+                type=NotificationTypeEnum.MILESTONE,
+                to_user_id=contract.customer_id,
+                contract_id=contract.id,
+                description="Один из этапов обновлен",
+            ),
+        )
         return MilestoneResponse.model_validate(updated_milestone)
 
     @classmethod
@@ -161,6 +181,15 @@ class MilestonService:
             )
         result = await MilestoneRepository.delete(
             session=session, milestone_id=milestone_id
+        )
+        await NotificationService.create_for_contract(
+            session=session,
+            data=NotificationCreateMilestone(
+                type=NotificationTypeEnum.MILESTONE,
+                to_user_id=contract.customer_id,
+                contract_id=contract.id,
+                description="Один из этапов удален",
+            ),
         )
 
         return result  # type: ignore
@@ -193,6 +222,15 @@ class MilestonService:
         new_milestone = await MilestoneRepository.complete(
             session=session, milestone_id=milestone_id
         )
+        await NotificationService.create_for_contract(
+            session=session,
+            data=NotificationCreateMilestone(
+                type=NotificationTypeEnum.MILESTONE,
+                to_user_id=contract.customer_id,
+                contract_id=contract.id,
+                description="Один из этапов успешно завершен",
+            ),
+        )
 
         return MilestoneResponse.model_validate(new_milestone)
 
@@ -223,6 +261,15 @@ class MilestonService:
             )
         new_milestone = await MilestoneRepository.approve(
             session=session, milestone_id=milestone_id
+        )
+        await NotificationService.create_for_contract(
+            session=session,
+            data=NotificationCreateMilestone(
+                type=NotificationTypeEnum.MILESTONE,
+                to_user_id=contract.freelancer_id,
+                contract_id=contract.id,
+                description="Один из этапов успешно утвержден",
+            ),
         )
 
         return MilestoneResponse.model_validate(new_milestone)

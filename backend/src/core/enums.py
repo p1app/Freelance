@@ -45,3 +45,12 @@ class MilestoneStatusEnum(str, enum.Enum):
     PENDING = "pending"
     COMPLETED = "completed"
     APPROVED = "approved"
+
+
+class NotificationTypeEnum(str, enum.Enum):
+    PROPOSAL = "proposal"
+    MESSAGE = "message"
+    CONTRACT = "contract"
+    MILESTONE = "milestone"
+    REVIEW = "review"
+    SYSTEM = "system"

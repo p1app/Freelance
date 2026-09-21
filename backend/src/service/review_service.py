@@ -1,15 +1,17 @@
-from core.enums import ContractStatusEnum
+from core.enums import ContractStatusEnum, NotificationTypeEnum
 from core.exceptions import BusinessError, ConflictError, ForbiddenError, NotFoundError
 from models import User as UserModel
 from repository.contract_repo import ContractRepository
 from repository.review_repo import ReviewRepository
 from repository.user_repo import UserRepository
+from schemas.notification_schema import NotificationCreateReview
 from schemas.pagination_schema import PaginatedResponse
 from schemas.review_schema import (
     ReviewCreate,
     ReviewResponse,
     ReviewStatsResponse,
 )
+from service.notification_service import NotificationService
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -70,6 +72,16 @@ class ReviewService:
 
         # 8. Обновление рейтинга получателя
         await UserRepository.update_rating(session=session, user_id=to_user_id)
+
+        await NotificationService.create_for_review(
+            session=session,
+            data=NotificationCreateReview(
+                type=NotificationTypeEnum.REVIEW,
+                from_user_id=current_user.id,
+                to_user_id=to_user_id,
+                description="Вам был добавлен новый отзыв",
+            ),
+        )
 
         return ReviewResponse.model_validate(review)
 

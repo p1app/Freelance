@@ -1,10 +1,16 @@
-from core.enums import ProjectStatusEnum, ProposalStatusEnum, RoleEnum
+from core.enums import (
+    NotificationTypeEnum,
+    ProjectStatusEnum,
+    ProposalStatusEnum,
+    RoleEnum,
+)
 from core.exceptions import BusinessError, ConflictError, ForbiddenError, NotFoundError
 from models.user_model import User as UserModel
 from repository.contract_repo import ContractRepository
 from repository.project_repo import ProjectRepository
 from repository.proposal_repo import ProposalRepository
 from schemas.contract_schema import ContractCreate, ContractResponse
+from schemas.notification_schema import NotificationCreateProposal
 from schemas.pagination_schema import PaginatedResponse
 from schemas.proposal_schema import (
     ProposalCreate,
@@ -12,8 +18,10 @@ from schemas.proposal_schema import (
     ProposalUpdate,
 )
 from service.contract_service import ContractService
+from service.notification_service import NotificationService
 from service.project_service import ProjectService
 from sqlalchemy.ext.asyncio import AsyncSession
+from websocket.notifications_manager import ws_manager_notifications
 
 
 class ProposalService:
@@ -44,17 +52,31 @@ class ProposalService:
             raise ConflictError(
                 "You have already submitted a proposal for this project"
             )
-
-        proposal = await ProposalRepository.create(
-            session=session,
-            proposal_data=data,
-            project_id=project_id,
-            freelancer_id=freelancer_id,
-        )
-        proposal_dict = proposal.__dict__.copy()
-        proposal_dict["freelancer_name"] = proposal.freelancer.fullname
-        proposal_dict["project_title"] = proposal.project.title
-        return ProposalResponse.model_validate(proposal_dict)
+        try:
+            proposal = await ProposalRepository.create(
+                session=session,
+                proposal_data=data,
+                project_id=project_id,
+                freelancer_id=freelancer_id,
+            )
+            proposal_dict = proposal.__dict__.copy()
+            proposal_dict["freelancer_name"] = proposal.freelancer.fullname
+            proposal_dict["project_title"] = proposal.project.title
+            notification = await NotificationService.create_for_proposal(
+                session=session,
+                data=NotificationCreateProposal(
+                    type=NotificationTypeEnum.PROPOSAL,
+                    to_user_id=freelancer_id,
+                    project_id=project_id,
+                    description="На ваш проект пришел новый отклик.",
+                ),
+            )
+            await session.commit()
+            await ws_manager_notifications.push(notification, notification.to_user_id)
+            return ProposalResponse.model_validate(proposal_dict)
+        except Exception:
+            await session.rollback()
+            raise
 
     @classmethod
     async def get_proposals_by_project(
@@ -207,7 +229,17 @@ class ProposalService:
             contract = await ContractService.create_contract(
                 session=session, contract_data=contract_data
             )
+            notification = await NotificationService.create_for_proposal(
+                session=session,
+                data=NotificationCreateProposal(
+                    type=NotificationTypeEnum.PROPOSAL,
+                    to_user_id=proposal.freelancer_id,
+                    project_id=proposal.project_id,
+                    description="Ваш отклик был успешно принят",
+                ),
+            )
             await session.commit()
+            await ws_manager_notifications.push(notification, notification.to_user_id)
             return contract
         except Exception:
             await session.rollback()
@@ -235,9 +267,19 @@ class ProposalService:
         if proposal.status != ProposalStatusEnum.PENDING:
             raise BusinessError("Only PENDING proposals can be rejected")
 
+        notification = await NotificationService.create_for_proposal(
+            session=session,
+            data=NotificationCreateProposal(
+                type=NotificationTypeEnum.PROPOSAL,
+                to_user_id=proposal.freelancer_id,
+                project_id=proposal.project_id,
+                description="Ваш отклик был отклонен",
+            ),
+        )
         rejected_proposal = await ProposalRepository.reject(
             session=session, proposal_id=proposal_id
         )
+        await ws_manager_notifications.push(notification, notification.to_user_id)
         return ProposalResponse.model_validate(rejected_proposal)
 
     @classmethod

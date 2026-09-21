@@ -24,9 +24,7 @@
 
     <!-- Авторизованный -->
     <template v-if="authStore.isAuthenticated">
-      <v-btn icon variant="text" class="mr-1">
-        <v-icon>mdi-bell-outline</v-icon>
-      </v-btn>
+      <NotificationsMenu />
 
       <v-menu location="bottom end">
         <template #activator="{ props }">
@@ -84,6 +82,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import NotificationsMenu from '@/components/notification/NotificationsMenu.vue'
 
 defineEmits(['toggle-drawer'])
 

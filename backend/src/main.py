@@ -15,6 +15,7 @@ from routers.auth_router import router as auth_router
 from routers.chat_router import router as chat_router
 from routers.contract_router import router as contract_router
 from routers.milestone_router import router as milestone_router
+from routers.notification_router import router as notification_router
 from routers.project_router import router as project_router
 from routers.proposal_router import router as proposal_router
 from routers.review_router import router as review_router
@@ -45,6 +46,7 @@ app.include_router(milestone_router)
 app.include_router(contract_router)
 app.include_router(chat_router)
 app.include_router(ws_router)
+app.include_router(notification_router)
 security = HTTPBearer()
 
 

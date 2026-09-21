@@ -25,6 +25,7 @@ from models import (  # type: ignore
     ChatMessage,  # noqa: F401
     Contract,  # noqa: F401
     Milestone,  # noqa: F401
+    Notification,  # noqa: F401
 )
 from core.database import Base, DATABASE_URL  # type: ignore
 
