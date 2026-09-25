@@ -1,7 +1,8 @@
 from datetime import datetime
 
-from core.enums import RoleEnum
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
+from core.enums import RoleEnum
 
 
 class UserRegisterNoPass(BaseModel):

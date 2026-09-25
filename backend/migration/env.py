@@ -33,7 +33,11 @@ from core.database import Base, DATABASE_URL  # type: ignore
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-config.set_main_option("sqlalchemy.url", DATABASE_URL)
+if config.get_main_option("sqlalchemy.url", "") in (
+    "",
+    "driver://user:pass@localhost/dbname",
+):
+    config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
 
 # Interpret the config file for Python logging.

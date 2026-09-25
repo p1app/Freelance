@@ -1,13 +1,14 @@
 from typing import Annotated
 
+from fastapi import APIRouter, Depends, status
+from fastapi_jwt_harmony import JWTHarmony, JWTHarmonyDep, JWTHarmonyRefresh
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.database import get_db
 from core.exceptions import ConflictError
 from core.security import JWTUser
-from fastapi import APIRouter, Depends, status
-from fastapi_jwt_harmony import JWTHarmony, JWTHarmonyDep, JWTHarmonyRefresh
 from schemas.auth_schema import TokenResponse, UserLogin, UserRegister
 from service.auth_service import AuthService
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(tags=["auth"], prefix="/auth")
 

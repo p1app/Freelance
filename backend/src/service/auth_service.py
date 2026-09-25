@@ -1,9 +1,9 @@
 import time
 
-from core.email_message import send_email_message
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.exceptions import (
     BusinessError,
-    ConflictError,
     ForbiddenError,
     UnauthorizedError,
 )
@@ -22,7 +22,6 @@ from schemas.auth_schema import (
     UserRegister,
     UserRegisterNoPass,
 )
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class AuthService:
@@ -57,10 +56,10 @@ class AuthService:
         payload = JWTUser(id=created_user.id, role=created_user.role)
         access = create_access_token(payload)
         refresh = create_refresh_token(payload)
-        try:
-            send_email_message.delay(user_data.email, user_data.username)
-        except Exception as e:  # noqa: BLE001
-            raise ConflictError(f"error when sending email message {e}")
+        # try:
+        #     send_email_message.delay(user_data.email, user_data.username)
+        # except Exception as e:
+        #     raise ConflictError(f"error when sending email message {e}")
         return TokenResponse(access_token=access, refresh_token=refresh)
 
     @classmethod

@@ -27,6 +27,22 @@ class DatabaseConfig(ConfigBase):
         )
 
 
+class TestDatabaseConfig(ConfigBase):
+    model_config = SettingsConfigDict(env_prefix="test_db_")
+
+    host: str
+    port: int
+    name: str
+    user: str
+    password: str
+
+    def get_db_url(self):
+        return (
+            f"postgresql+asyncpg://{self.user}:{self.password}@"
+            f"{self.host}:{self.port}/{self.name}"
+        )
+
+
 class SecurityConfig(ConfigBase):
     algorithm: str
     secret_key: str
@@ -55,6 +71,7 @@ class Config(BaseSettings):
     security: SecurityConfig = Field(default_factory=SecurityConfig)  # type: ignore
     email: EmailConfig = Field(default_factory=EmailConfig)  # type: ignore
     redis: RedisConfig = Field(default_factory=RedisConfig)  # type: ignore
+    test_db: TestDatabaseConfig = Field(default_factory=TestDatabaseConfig)  # type: ignore
 
 
 config = Config()
