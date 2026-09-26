@@ -39,7 +39,7 @@ def migrated_db():
     command.upgrade(alembic_config, "head")
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def clean_db():
     async def _truncate():
         async with TestSession() as s:

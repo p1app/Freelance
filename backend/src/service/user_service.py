@@ -1,5 +1,7 @@
 from typing import Literal
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.exceptions import NotFoundError
 from models.user_model import User
 from repository.project_repo import ProjectRepository
@@ -13,7 +15,6 @@ from schemas.user_schema import (
     UserStatsResponse,
     UserUpdate,
 )
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class UserService:

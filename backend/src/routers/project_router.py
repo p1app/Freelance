@@ -1,12 +1,14 @@
 from typing import Annotated, Literal
 
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.database import get_db
 from core.security import (
     get_current_client,
     get_current_freelancer,
     get_current_user_optional,
 )
-from fastapi import APIRouter, Depends, Query, status
 from models.user_model import User as UserModel
 from schemas.pagination_schema import PaginatedResponse
 from schemas.project_schema import (
@@ -17,7 +19,6 @@ from schemas.project_schema import (
     ProjectUpdate,
 )
 from service.project_service import ProjectService
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 

@@ -1,8 +1,9 @@
 from datetime import datetime
 from typing import Self
 
-from core.enums import RoleEnum
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
+
+from core.enums import RoleEnum
 
 
 class UserUpdate(BaseModel):

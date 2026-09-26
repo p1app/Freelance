@@ -33,7 +33,7 @@ async def login(
     return await AuthService.login(session=db, login_data=data)
 
 
-@router.post("/refresh", response_model=TokenResponse)
+@router.post("/refresh", response_model=TokenResponse, status_code=status.HTTP_200_OK)
 async def refresh(
     Authorize: Annotated[JWTHarmony[JWTUser], Depends(JWTHarmonyRefresh)],
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -41,7 +41,7 @@ async def refresh(
     return await AuthService.refresh(db, Authorize.user_claims)
 
 
-@router.post("/logout")
+@router.post("/logout", status_code=status.HTTP_200_OK)
 async def logout(authorize: Annotated[JWTHarmony[JWTUser], Depends(JWTHarmonyDep)]):
     try:
         await AuthService.logout(authorize.get_raw_jwt())
