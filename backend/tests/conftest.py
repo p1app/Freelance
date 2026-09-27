@@ -1,16 +1,15 @@
 import asyncio
 
+import main  # type: ignore
 import pytest
 from alembic import command
 from alembic.config import Config
+from core.database import Base, get_db  # type: ignore
+from core.settings import config  # type: ignore
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
-
-import main  # type: ignore
-from core.database import Base, get_db  # type: ignore
-from core.settings import config  # type: ignore
 
 TEST_URL = config.test_db.get_db_url()
 
