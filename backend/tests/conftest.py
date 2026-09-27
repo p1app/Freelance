@@ -32,14 +32,13 @@ def client():
 
 @pytest.fixture(scope="session", autouse=True)
 def migrated_db():
-    print("qq")
     alembic_config = Config("alembic.ini")
     alembic_config.set_main_option("sqlalchemy.url", TEST_URL)
     command.upgrade(alembic_config, "head")
 
 
 @pytest.fixture(scope="session", autouse=True)
-def clean_db():
+def clean_db(migrated_db):
     async def _truncate():
         async with TestSession() as s:
             tables = ", ".join(t.name for t in Base.metadata.sorted_tables)
