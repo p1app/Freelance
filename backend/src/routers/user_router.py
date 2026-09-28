@@ -1,10 +1,8 @@
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, status
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from core.database import get_db
 from core.security import get_current_user
+from fastapi import APIRouter, Depends, status
 from models.user_model import User as UserModel
 from schemas.pagination_schema import PaginatedResponse
 from schemas.user_schema import (
@@ -15,6 +13,7 @@ from schemas.user_schema import (
     UserUpdate,
 )
 from service.user_service import UserService
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/users", tags=["users"])
 
