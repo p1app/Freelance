@@ -1,7 +1,7 @@
 services:
   backend:
     build: ./backend/.
-    image: app-backend:latest
+    image: backend:${DIR_NAME}
     container_name: backend
     ports:
       - "8000"
@@ -26,6 +26,7 @@ services:
 
   frontend:
     build: ./frontend/.
+    image: frontend:${DIR_NAME}
     container_name: frontend
     ports:
       - "5173:5173"
