@@ -1,8 +1,10 @@
 from typing import Annotated
 
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.database import get_db
 from core.security import get_current_user
-from fastapi import APIRouter, Depends, Query, status
 from models.user_model import User as UserModel
 from schemas.pagination_schema import PaginatedResponse
 from schemas.review_schema import (
@@ -11,7 +13,6 @@ from schemas.review_schema import (
     ReviewStatsResponse,
 )
 from service.review_service import ReviewService
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(tags=["reviews"])
 

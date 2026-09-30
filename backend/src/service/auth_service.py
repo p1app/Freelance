@@ -1,5 +1,7 @@
 import time
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.email_message import send_email_message
 from core.exceptions import (
     BusinessError,
@@ -22,7 +24,6 @@ from schemas.auth_schema import (
     UserRegister,
     UserRegisterNoPass,
 )
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class AuthService:

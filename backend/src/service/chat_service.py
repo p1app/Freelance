@@ -1,3 +1,5 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.enums import ContractStatusEnum
 from core.exceptions import BusinessError, ForbiddenError, NotFoundError
 from models.user_model import User as UserModel
@@ -9,7 +11,6 @@ from schemas.chat_schema import (
     UnreadCountResponse,
 )
 from schemas.pagination_schema import PaginatedResponse
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class ChatService:

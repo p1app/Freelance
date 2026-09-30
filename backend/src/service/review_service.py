@@ -1,3 +1,5 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.enums import ContractStatusEnum, NotificationTypeEnum
 from core.exceptions import BusinessError, ConflictError, ForbiddenError, NotFoundError
 from models import User as UserModel
@@ -12,7 +14,6 @@ from schemas.review_schema import (
     ReviewStatsResponse,
 )
 from service.notification_service import NotificationService
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class ReviewService:

@@ -1,6 +1,8 @@
 from datetime import UTC, datetime
 from typing import Literal
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.enums import ProjectStatusEnum, RoleEnum
 from core.exceptions import (
     BusinessError,
@@ -22,7 +24,6 @@ from schemas.project_schema import (
     ProjectUpdate,
 )
 from schemas.proposal_schema import ProposalResponse
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 def _check_ownership(project: ProjectModel | None, user_id: int) -> ProjectModel:

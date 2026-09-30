@@ -1,13 +1,14 @@
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from core.database import Base
-from core.enums import MilestoneStatusEnum
 from sqlalchemy import DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
+from core.database import Base
+from core.enums import MilestoneStatusEnum
+
 if TYPE_CHECKING:
-    from models.contract_model import Contract  # noqa: TC004
+    from models.contract_model import Contract
 
 
 class Milestone(Base):

@@ -1,9 +1,10 @@
-from core.enums import ProposalStatusEnum
-from models import Proposal
-from schemas.proposal_schema import ProposalCreate, ProposalUpdate
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+
+from core.enums import ProposalStatusEnum
+from models import Proposal
+from schemas.proposal_schema import ProposalCreate, ProposalUpdate
 
 
 class ProposalRepository:

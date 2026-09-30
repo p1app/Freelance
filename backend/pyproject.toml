@@ -39,3 +39,18 @@ asyncio_mode = "auto"
 filterwarnings = [
     "ignore:.*Accessing argon2.__version__ is deprecated:DeprecationWarning"
 ]
+
+[tool.ruff.lint.isort]
+known-first-party = ["core", "models", "repository", "routers", "schemas", "service", "websocket", "main"]
+
+[tool.ruff]
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "env",
+    "__pycache__",
+    "build",
+    "dist",
+    "migration"
+]

@@ -1,17 +1,16 @@
 from typing import Annotated
 
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.database import get_db
 from core.security import get_current_user
-from fastapi import APIRouter, Depends, Query, status
 from models.user_model import User as UserModel
 from schemas.chat_schema import (
-    MessageCreate,  # noqa: F401
     MessageResponse,
-    UnreadCountResponse,  # noqa: F401
 )
 from schemas.pagination_schema import PaginatedResponse
 from service.chat_service import ChatService
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(tags=["chat"])
 

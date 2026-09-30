@@ -1,7 +1,8 @@
-from core.database import Base
-from core.enums import NotificationTypeEnum
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
+
+from core.database import Base
+from core.enums import NotificationTypeEnum
 
 
 class Notification(Base):

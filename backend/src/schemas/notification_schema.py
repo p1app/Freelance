@@ -1,7 +1,8 @@
 from datetime import datetime
 
-from core.enums import NotificationTypeEnum
 from pydantic import BaseModel, ConfigDict, model_validator
+
+from core.enums import NotificationTypeEnum
 
 
 class NotificationCreateBase(BaseModel):

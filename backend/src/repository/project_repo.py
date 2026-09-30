@@ -1,9 +1,10 @@
-from core.enums import ProjectStatusEnum
-from models import Project
-from schemas.project_schema import ProjectCreate, ProjectListFilter, ProjectUpdate
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+
+from core.enums import ProjectStatusEnum
+from models import Project
+from schemas.project_schema import ProjectCreate, ProjectListFilter, ProjectUpdate
 
 
 class ProjectRepository:

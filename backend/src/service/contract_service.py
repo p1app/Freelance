@@ -1,3 +1,5 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.enums import (
     ContractRoleUserEnum,
     ContractStatusEnum,
@@ -25,7 +27,6 @@ from schemas.notification_schema import NotificationCreateContract
 from schemas.pagination_schema import PaginatedResponse
 from service.milestone_service import MilestonService
 from service.notification_service import NotificationService
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class ContractService:

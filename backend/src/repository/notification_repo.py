@@ -1,3 +1,6 @@
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from models.notification_model import Notification
 from schemas.notification_schema import (
     NotificationCreateBase,
@@ -7,8 +10,6 @@ from schemas.notification_schema import (
     NotificationCreateProposal,
     NotificationCreateReview,
 )
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class NotificationRepository:

@@ -1,9 +1,6 @@
 import json
 from typing import Annotated
 
-from core.database import get_db
-from core.enums import ContractStatusEnum, NotificationTypeEnum
-from core.security import JWTUser
 from fastapi import (
     APIRouter,
     Depends,
@@ -14,6 +11,11 @@ from fastapi import (
     status,
 )
 from fastapi_jwt_harmony import JWTHarmonyException, JWTHarmonyWebSocket, JWTHarmonyWS
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.database import get_db
+from core.enums import ContractStatusEnum, NotificationTypeEnum
+from core.security import JWTUser
 from models.user_model import User as UserModel
 from repository.chat_repo import ChatRepository
 from repository.contract_repo import ContractRepository
@@ -23,7 +25,6 @@ from schemas.notification_schema import (
     NotificationCreateMessage,
 )
 from service.notification_service import NotificationService
-from sqlalchemy.ext.asyncio import AsyncSession
 from websocket.chat_manager import ws_manager_chat
 from websocket.notifications_manager import ws_manager_notifications
 

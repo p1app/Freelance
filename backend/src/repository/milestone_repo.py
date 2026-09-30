@@ -1,8 +1,9 @@
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.enums import MilestoneStatusEnum
 from models import Milestone
 from schemas.milestone_schema import MilestoneCreate, MilestoneUpdate
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class MilestoneRepository:

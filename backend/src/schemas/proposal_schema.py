@@ -1,8 +1,9 @@
 from datetime import datetime
 from typing import Self
 
-from core.enums import ProposalStatusEnum
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from core.enums import ProposalStatusEnum
 
 
 class ProposalCreate(BaseModel):

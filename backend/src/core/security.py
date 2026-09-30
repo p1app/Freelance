@@ -1,11 +1,6 @@
 from datetime import timedelta
 
 import redis
-from core.database import get_db
-from core.enums import RoleEnum
-from core.exceptions import ForbiddenError, NotFoundError, UnauthorizedError
-from core.settings import config
-from core.settings import config as Config
 from fastapi import Depends  # dishka
 from fastapi_jwt_harmony import (
     JWTHarmony,
@@ -13,11 +8,17 @@ from fastapi_jwt_harmony import (
     JWTHarmonyOptional,
     JWTHarmonyRefresh,
 )
-from models.user_model import User
 from passlib.context import CryptContext
 from pydantic import BaseModel
-from repository.user_repo import UserRepository
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.database import get_db
+from core.enums import RoleEnum
+from core.exceptions import ForbiddenError, NotFoundError, UnauthorizedError
+from core.settings import config
+from core.settings import config as Config
+from models.user_model import User
+from repository.user_repo import UserRepository
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 

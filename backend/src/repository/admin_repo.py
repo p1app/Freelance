@@ -1,7 +1,8 @@
-from core.enums import ContractStatusEnum, ProjectStatusEnum, RoleEnum
-from models import Project, User
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.enums import ContractStatusEnum, ProjectStatusEnum, RoleEnum
+from models import Project, User
 
 
 class AdminRepository:

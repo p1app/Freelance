@@ -1,11 +1,12 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from core.enums import ContractRoleUserEnum, ContractStatusEnum
 from models import Contract
 from schemas.contract_schema import ContractCreate
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 
 class ContractRepository:
@@ -16,7 +17,7 @@ class ContractRepository:
         contract = Contract(
             **contract_data.model_dump(),
             status=ContractStatusEnum.ACTIVE,
-            start_date=datetime.now(timezone.utc),
+            start_date=datetime.now(UTC),
         )
         session.add(contract)
         await session.flush()
@@ -86,7 +87,7 @@ class ContractRepository:
             return None
 
         contract.status = ContractStatusEnum.COMPLETED
-        contract.end_date = datetime.now(timezone.utc)
+        contract.end_date = datetime.now(UTC)
         await session.flush()
         await session.refresh(contract)
         return contract

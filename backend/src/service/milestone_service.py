@@ -1,5 +1,7 @@
 from typing import Literal
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.enums import ContractStatusEnum, MilestoneStatusEnum, NotificationTypeEnum
 from core.exceptions import BusinessError, ConflictError, ForbiddenError, NotFoundError
 from models.user_model import User as UserModel
@@ -13,7 +15,6 @@ from schemas.milestone_schema import (
 from schemas.notification_schema import NotificationCreateMilestone
 from schemas.pagination_schema import PaginatedResponse
 from service.notification_service import NotificationService
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class MilestonService:

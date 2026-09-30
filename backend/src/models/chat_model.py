@@ -1,12 +1,13 @@
 from typing import TYPE_CHECKING
 
-from core.database import Base
 from sqlalchemy import Boolean, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
+from core.database import Base
+
 if TYPE_CHECKING:
-    from models.contract_model import Contract  # noqa: TC004
-    from models.user_model import User  # noqa: TC004
+    from models.contract_model import Contract
+    from models.user_model import User
 
 
 class ChatMessage(Base):

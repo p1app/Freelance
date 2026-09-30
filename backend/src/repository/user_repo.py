@@ -1,9 +1,10 @@
+from sqlalchemy import func, or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.enums import RoleEnum
 from models import User
 from schemas.auth_schema import UserRegisterNoPass
 from schemas.user_schema import FreelancerFilter, UserUpdate
-from sqlalchemy import func, or_, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class UserRepository:

@@ -1,16 +1,17 @@
 from typing import TYPE_CHECKING
 
-from core.database import Base
-from core.enums import RoleEnum
 from sqlalchemy import ARRAY, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from core.database import Base
+from core.enums import RoleEnum
+
 if TYPE_CHECKING:
-    from models.chat_model import ChatMessage  # noqa: TC004
-    from models.contract_model import Contract  # noqa: TC004
-    from models.project_model import Project  # noqa: TC004
-    from models.proposal_model import Proposal  # noqa: TC004
-    from models.review_model import Review  # noqa: TC004
+    from models.chat_model import ChatMessage
+    from models.contract_model import Contract
+    from models.project_model import Project
+    from models.proposal_model import Proposal
+    from models.review_model import Review
 
 
 class User(Base):

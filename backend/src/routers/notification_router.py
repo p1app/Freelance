@@ -1,12 +1,13 @@
 from typing import Annotated, Literal
 
+from fastapi import APIRouter, Depends, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.database import get_db
 from core.security import get_current_user
-from fastapi import APIRouter, Depends, status
 from models.user_model import User as UserModel
 from schemas.notification_schema import NotificationResponse
 from service.notification_service import NotificationService
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(tags=["notification"])
 

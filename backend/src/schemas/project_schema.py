@@ -1,8 +1,9 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Self
 
-from core.enums import ProjectCategoryEnum, ProjectStatusEnum
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from core.enums import ProjectCategoryEnum, ProjectStatusEnum
 from schemas.proposal_schema import ProposalResponse
 
 
@@ -15,7 +16,7 @@ class ProjectCreate(BaseModel):
 
     @model_validator(mode="after")
     def validate_deadline(self) -> Self:
-        if self.deadline < datetime.now(timezone.utc):
+        if self.deadline < datetime.now(UTC):
             raise ValueError(
                 "Время в поле deadline не должно быть раньше настоящего времени"
             )
@@ -38,7 +39,7 @@ class ProjectUpdate(BaseModel):
 
     @model_validator(mode="after")
     def validate_deadline(self) -> Self:
-        if self.deadline is not None and self.deadline < datetime.now(timezone.utc):
+        if self.deadline is not None and self.deadline < datetime.now(UTC):
             raise ValueError(
                 "Время в поле deadline не должно быть раньше чем настоящее время"
             )

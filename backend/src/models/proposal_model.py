@@ -1,14 +1,15 @@
 from typing import TYPE_CHECKING
 
-from core.database import Base
-from core.enums import ProposalStatusEnum
 from sqlalchemy import ForeignKey, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from core.database import Base
+from core.enums import ProposalStatusEnum
+
 if TYPE_CHECKING:
-    from models.contract_model import Contract  # noqa: TC004
-    from models.project_model import Project  # noqa: TC004
-    from models.user_model import User  # noqa: TC004
+    from models.contract_model import Contract
+    from models.project_model import Project
+    from models.user_model import User
 
 
 class Proposal(Base):

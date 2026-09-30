@@ -1,3 +1,5 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.enums import (
     NotificationTypeEnum,
     ProjectStatusEnum,
@@ -20,7 +22,6 @@ from schemas.proposal_schema import (
 from service.contract_service import ContractService
 from service.notification_service import NotificationService
 from service.project_service import ProjectService
-from sqlalchemy.ext.asyncio import AsyncSession
 from websocket.notifications_manager import ws_manager_notifications
 
 

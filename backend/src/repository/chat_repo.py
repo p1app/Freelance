@@ -1,7 +1,8 @@
-from models import ChatMessage
-from schemas.chat_schema import MessageCreate
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from models import ChatMessage
+from schemas.chat_schema import MessageCreate
 
 
 class ChatRepository:

@@ -1,18 +1,19 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from core.database import Base
-from core.enums import ContractStatusEnum
 from sqlalchemy import CheckConstraint, DateTime, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
+from core.database import Base
+from core.enums import ContractStatusEnum
+
 if TYPE_CHECKING:
-    from models.chat_model import ChatMessage  # noqa: TC004
-    from models.milestone_model import Milestone  # noqa: TC004
-    from models.project_model import Project  # noqa: TC004
-    from models.proposal_model import Proposal  # noqa: TC004
-    from models.review_model import Review  # noqa: TC004
-    from models.user_model import User  # noqa: TC004
+    from models.chat_model import ChatMessage
+    from models.milestone_model import Milestone
+    from models.project_model import Project
+    from models.proposal_model import Proposal
+    from models.review_model import Review
+    from models.user_model import User
 
 
 class Contract(Base):

@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from core.settings import config
 from sqlalchemy import DateTime, Integer, func
 from sqlalchemy.ext.asyncio import (
     AsyncAttrs,
@@ -8,6 +7,8 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+from core.settings import config
 
 DATABASE_URL = config.db.get_db_url()
 

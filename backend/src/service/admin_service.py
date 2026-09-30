@@ -1,5 +1,7 @@
 from typing import Literal
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.enums import ProjectStatusEnum, RoleEnum
 from core.exceptions import BusinessError, ForbiddenError, NotFoundError
 from models.user_model import User as UserModel
@@ -11,7 +13,6 @@ from schemas.admin_schema import (
     PlatformStatsResponse,
 )
 from schemas.pagination_schema import PaginatedResponse
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 def _check_admin_privileges(user: UserModel):

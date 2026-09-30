@@ -1,9 +1,11 @@
 from typing import Annotated
 
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.database import get_db
 from core.enums import ProposalStatusEnum
 from core.security import get_current_client, get_current_freelancer
-from fastapi import APIRouter, Depends, Query, status
 from models.user_model import User as UserModel
 from schemas.contract_schema import ContractResponse
 from schemas.pagination_schema import PaginatedResponse
@@ -13,7 +15,6 @@ from schemas.proposal_schema import (
     ProposalUpdate,
 )
 from service.proposal_service import ProposalService
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(tags=["proposals"])
 

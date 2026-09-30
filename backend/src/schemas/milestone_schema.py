@@ -1,8 +1,9 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Self
 
-from core.enums import MilestoneStatusEnum
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from core.enums import MilestoneStatusEnum
 
 
 class MilestoneCreate(BaseModel):
@@ -12,7 +13,7 @@ class MilestoneCreate(BaseModel):
 
     @model_validator(mode="after")
     def validate_due_date(self) -> Self:
-        if self.due_date < datetime.now(timezone.utc):
+        if self.due_date < datetime.now(UTC):
             raise ValueError(
                 "Время в поле due_date не должно быть раньше настоящего времени"
             )
@@ -33,7 +34,7 @@ class MilestoneUpdate(BaseModel):
 
     @model_validator(mode="after")
     def validate_due_date(self) -> Self:
-        if self.due_date is not None and self.due_date < datetime.now(timezone.utc):
+        if self.due_date is not None and self.due_date < datetime.now(UTC):
             raise ValueError(
                 "Время в поле due_date не должно быть раньше настоящего времени"
             )

@@ -1,3 +1,5 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.exceptions import ConflictError, ForbiddenError, NotFoundError
 from models.user_model import User as UserModel
 from repository.notification_repo import NotificationRepository
@@ -10,7 +12,6 @@ from schemas.notification_schema import (
     NotificationCreateReview,
     NotificationResponse,
 )
-from sqlalchemy.ext.asyncio import AsyncSession
 from websocket.notifications_manager import ws_manager_notifications
 
 
