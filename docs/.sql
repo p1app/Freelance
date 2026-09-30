@@ -6,6 +6,7 @@
 -- ЧАСТЬ 0. ОЧИСТКА (для повторного запуска)
 -- ============================================================================
 
+DROP TABLE IF EXISTS notifications CASCADE;
 DROP TABLE IF EXISTS chat_messages CASCADE;
 DROP TABLE IF EXISTS reviews CASCADE;
 DROP TABLE IF EXISTS milestones CASCADE;
@@ -14,6 +15,7 @@ DROP TABLE IF EXISTS proposals CASCADE;
 DROP TABLE IF EXISTS projects CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
+DROP TYPE IF EXISTS notification_type;
 DROP TYPE IF EXISTS milestone_status;
 DROP TYPE IF EXISTS contract_role_user;
 DROP TYPE IF EXISTS contract_status;
@@ -68,6 +70,15 @@ CREATE TYPE milestone_status AS ENUM (
     'pending',
     'completed',
     'approved'
+);
+
+CREATE TYPE notification_type AS ENUM (
+    'proposal',
+    'message',
+    'contract',
+    'milestone',
+    'review',
+    'system'
 );
 
 -- ЧАСТЬ 2. ТАБЛИЦЫ
@@ -263,6 +274,40 @@ CREATE INDEX idx_messages_contract      ON chat_messages (contract_id);
 CREATE INDEX idx_messages_sender        ON chat_messages (sender_id);
 CREATE INDEX idx_messages_contract_time ON chat_messages (contract_id, created_at DESC);
 CREATE INDEX idx_messages_unread        ON chat_messages (contract_id, is_read)
+    WHERE is_read = FALSE;
+
+-- Таблица 8. notifications
+CREATE TABLE notifications (
+    id           SERIAL PRIMARY KEY,
+    type         notification_type NOT NULL,
+    to_user_id   INTEGER           NOT NULL,
+    description  VARCHAR           NOT NULL,
+    is_read      BOOLEAN           NOT NULL DEFAULT FALSE,
+    contract_id  INTEGER,
+    project_id   INTEGER,
+    from_user_id INTEGER,
+    created_at   TIMESTAMPTZ       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at   TIMESTAMPTZ       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_notifications_to_user
+        FOREIGN KEY (to_user_id) REFERENCES users(id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_notifications_from_user
+        FOREIGN KEY (from_user_id) REFERENCES users(id)
+        ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT fk_notifications_contract
+        FOREIGN KEY (contract_id) REFERENCES contracts(id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_notifications_project
+        FOREIGN KEY (project_id) REFERENCES projects(id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT chk_notifications_description
+        CHECK (length(trim(description)) > 0)
+);
+
+CREATE INDEX idx_notifications_to_user  ON notifications (to_user_id);
+CREATE INDEX idx_notifications_contract ON notifications (contract_id);
+CREATE INDEX idx_notifications_project  ON notifications (project_id);
+CREATE INDEX idx_notifications_unread   ON notifications (to_user_id, is_read)
     WHERE is_read = FALSE;
 
 -- КОНЕЦ СКРИПТА
