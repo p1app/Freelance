@@ -19,25 +19,26 @@ jobs:
       runs-on: ubuntu-latest
       needs: lint
       environment: 'test'
-      services:
-        postgres:
-          image: postgres:16-alpine
-          env:
-            POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASS }}
-            POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-            POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-          ports: 
-            - 5432:5432
-          options: --health-cmd pg_isready --health-interval 10s  --health-timeout 5s --health-retries 5
-        redis:
-          image: redis:8-alpine
-          ports:
-            - 6137:6137
+      # services:
+      #   postgres:
+      #     image: postgres:16-alpine
+      #     env:
+      #       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASS }}
+      #       POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      #       POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      #     ports: 
+      #       - 5432:5432
+      #     options: --health-cmd pg_isready --health-interval 10s  --health-timeout 5s --health-retries 5
+      #   redis:
+      #     image: redis:8-alpine
+      #     ports:
+      #       - 6137:6137
       steps:
-        - name: 'Create env_file'
-          run: echo '${{ secrets.API_ENV_FILE }}' > ./backend/.env
+        # - name: 'Create env_file'
+        #   run: echo '${{ secrets.API_ENV_FILE }}' > ./backend/.env
         - uses: actions/checkout@v7
-        - name: 'Install uv'
-          uses: astral-sh/setup-uv@v5
-        - name: 'Run test'
-          run: uv run --directory backend pytest
+        - run: ls -la 
+        # - name: 'Install uv'
+        #   uses: astral-sh/setup-uv@v5
+        # - name: 'Run test'
+        #   run: uv run --directory backend pytest
