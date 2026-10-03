@@ -198,7 +198,7 @@ class ProjectService:
 
         if freelancer_id == current_user.id:
             raise BusinessError("The creator of the project cannot be its freelancer")
-        if project.status != ProjectStatusEnum.OPEN:  # type: ignore
+        if project.status != ProjectStatusEnum.OPEN:
             raise BusinessError(
                 'You cannot accept a freelancer if the project status is not "OPEN".'
             )

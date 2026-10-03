@@ -5,7 +5,7 @@ services:
     ports:
       - "8000"
     env_file:
-      - env/backend.env
+      - docker/env/backend.env
     restart: unless-stopped
     networks:
       - freelance
@@ -29,7 +29,7 @@ services:
     ports:
       - "5173:5173"
     env_file:
-      - env/frontend.env
+      - docker/env/frontend.env
     restart: unless-stopped
     networks:
       - freelance
@@ -41,7 +41,7 @@ services:
     container_name: worker
     entrypoint: []
     env_file:
-      - env/backend.env
+      - docker/env/backend.env
     environment:
       - PYTHONPATH=src
     command: [ "uv", "run", "celery", "-A", "core.email_message", "worker", "-l", "INFO" ]

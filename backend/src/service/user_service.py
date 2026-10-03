@@ -76,8 +76,8 @@ class UserService:
         average_rating = reviews.get("average_rating", 0.0)
 
         return UserStatsResponse(
-            projects_count=total_projects,  # type: ignore
-            completed_count=total_completed_projects,  # type: ignore
+            projects_count=total_projects,
+            completed_count=total_completed_projects,
             reviews_count=count_reviews,
             average_rating=average_rating,
         )
@@ -90,7 +90,7 @@ class UserService:
     ) -> PaginatedResponse[UserPublicResponse]:
         freelancers, total = await UserRepository.get_freelancers(
             session=session,
-            data=filters,  # type: ignore
+            data=filters,
         )
 
         valid_freelancers = [
@@ -99,8 +99,8 @@ class UserService:
 
         return PaginatedResponse(
             items=valid_freelancers,
-            total=total,  # type: ignore
+            total=total,
             page=filters.page,
             page_size=filters.page_size,
-            pages=(total + filters.page_size - 1) // filters.page_size,  # type: ignore
+            pages=(total + filters.page_size - 1) // filters.page_size,
         )

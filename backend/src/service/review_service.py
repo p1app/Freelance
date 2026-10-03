@@ -122,10 +122,10 @@ class ReviewService:
 
         return PaginatedResponse(
             items=validate_data,
-            total=total,  # type: ignore
+            total=total,
             page=page,
             page_size=page_size,
-            pages=(total + page_size - 1) // page_size,  # type: ignore
+            pages=(total + page_size - 1) // page_size,
         )
 
     @classmethod

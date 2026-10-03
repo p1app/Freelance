@@ -67,11 +67,11 @@ class RedisConfig(ConfigBase):
 
 
 class Config(BaseSettings):
-    db: DatabaseConfig = Field(default_factory=DatabaseConfig)  # type: ignore
-    security: SecurityConfig = Field(default_factory=SecurityConfig)  # type: ignore
-    email: EmailConfig = Field(default_factory=EmailConfig)  # type: ignore
-    redis: RedisConfig = Field(default_factory=RedisConfig)  # type: ignore
-    test_db: TestDatabaseConfig = Field(default_factory=TestDatabaseConfig)  # type: ignore
+    db: DatabaseConfig = Field(default_factory=DatabaseConfig)
+    security: SecurityConfig = Field(default_factory=SecurityConfig)
+    email: EmailConfig = Field(default_factory=EmailConfig)
+    redis: RedisConfig = Field(default_factory=RedisConfig)
+    test_db: TestDatabaseConfig = Field(default_factory=TestDatabaseConfig)
 
 
 config = Config()

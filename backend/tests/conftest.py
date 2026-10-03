@@ -8,9 +8,9 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
-import main  # type: ignore
-from core.database import Base, get_db  # type: ignore
-from core.settings import config  # type: ignore
+import main
+from core.database import Base, get_db
+from core.settings import config
 
 TEST_URL = config.test_db.get_db_url()
 
@@ -52,6 +52,8 @@ def clean_db(migrated_db):
 
 @pytest.fixture(autouse=True)
 def no_email(monkeypatch):
-    from src.core.email_message import send_email_message
+    from src.core.email_message import (  # ty: ignore[unresolved-import]
+        send_email_message,
+    )
 
     monkeypatch.setattr(send_email_message, "delay", lambda *a, **k: None)

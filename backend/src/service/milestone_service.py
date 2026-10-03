@@ -193,7 +193,7 @@ class MilestonService:
             ),
         )
 
-        return result  # type: ignore
+        return result
 
     @classmethod
     async def complete_milestone(

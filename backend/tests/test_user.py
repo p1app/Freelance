@@ -1,7 +1,7 @@
 import pytest
 
-from core.enums import RoleEnum  # type: ignore
-from core.security import JWTUser, create_access_token  # type: ignore
+from core.enums import RoleEnum
+from core.security import JWTUser, create_access_token
 
 access_token_client = create_access_token(JWTUser(id=1, role=RoleEnum.CLIENT))
 access_token_freelancer = create_access_token(JWTUser(id=2, role=RoleEnum.FREELANCER))

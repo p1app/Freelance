@@ -1,0 +1,22 @@
+name: 'CI_CD' 
+on:
+  workflow_dispatch:
+  push:
+    branches: main
+
+jobs:
+    lint:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v7
+        - name: 'Install uv'
+          uses: astral-sh/setup-uv@v5
+        - name: 'Linting with ruff'
+          run: uv run ruff check ./backend/src ./backend/tests
+        - name: 'Check error with ty'
+          run: |
+            cd backend
+            uv run ty check ./src ./tests 
+    # test:
+    #   runs-on: ubuntu-latest
+    #   services:

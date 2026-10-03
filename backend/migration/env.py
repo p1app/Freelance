@@ -17,7 +17,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
-from models import (  # type: ignore
+from models import (
     User,  # noqa: F401
     Project,  # noqa: F401
     Proposal,  # noqa: F401
@@ -27,7 +27,7 @@ from models import (  # type: ignore
     Milestone,  # noqa: F401
     Notification,  # noqa: F401
 )
-from core.database import Base, DATABASE_URL  # type: ignore
+from core.database import Base, DATABASE_URL
 
 
 # this is the Alembic Config object, which provides
