@@ -34,11 +34,11 @@ jobs:
           ports:
             - 6137:6137
       steps:
+        - uses: actions/checkout@v7
         - name: 'Create env_file'
           run: |
             touch ./backend/.env
             echo '${{ secrets.API_ENV_FILE }}' > ./backend/.env
-        - uses: actions/checkout@v7
         - name: 'Install uv'
           uses: astral-sh/setup-uv@v5
         - name: 'Run test'
