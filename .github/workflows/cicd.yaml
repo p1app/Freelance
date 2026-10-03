@@ -23,9 +23,9 @@ jobs:
         postgres:
           image: postgres:16-alpine
           env:
-            POSTGRES_PASSWORD: ${{ secrets.pg_pass }}
-            POSTGRES_USER: ${{ secrets.pg_user }}
-            POSTGRES_DB: ${{ vars.pg_db }}
+            POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASS }}
+            POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+            POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
           ports: 
             - 5432:5432
           options: --health-cmd pg_isready --health-interval 10s  --health-timeout 5s --health-retries 5
@@ -34,15 +34,10 @@ jobs:
           ports:
             - 6137:6137
       steps:
+        - name: Create env
+          run: echo '${{ secrets.API_ENV_FILE }} > ./backend/.env'
         - uses: actions/checkout@v7
         - name: 'Install uv'
           uses: astral-sh/setup-uv@v5
         - name: 'Run test'
-          env:
-            DB_NAME: ${{ vars.pg_db }}
-            DB_TEST_NAME: ${{ vars.pg_db }}
-            DB_USER: ${{ secrets.pg_user }}
-            DB_PASSWORD: ${{ secrets.pg_pass }}
-            DB_HOST: ${{ vars.DB_HOST }}
-            DB_PORT: ${{ vars.DB_PORT }}
           run: uv run --directory backend pytest
