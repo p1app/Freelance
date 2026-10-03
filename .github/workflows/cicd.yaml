@@ -17,12 +17,13 @@ jobs:
           run: uv run --directory backend ty check ./src ./tests
     test:
       runs-on: ubuntu-latest
+      needs: lint
       environment: 'test'
       services:
         postgres:
           image: postgres:16-alpine
           env:
-            POSTGRESS_PASSWORD: ${{ secrets.pg_pass }}
+            POSTGRES_PASSWORD: ${{ secrets.pg_pass }}
             POSTGRES_USER: ${{ secrets.pg_user }}
             POSTGRES_DB: ${{ vars.pg_db }}
           ports: 
