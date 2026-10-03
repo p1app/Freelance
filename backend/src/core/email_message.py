@@ -4,21 +4,24 @@ from email.mime.text import MIMEText
 
 from celery import Celery
 
+from core.exceptions import ConflictError
 from core.settings import config
 
 app = Celery(
     "email",
-    broker=f"redis://{config.redis.host}:{config.redis.port}/0",
+    broker=f"redis://{config.redis.HOST}:{config.redis.PORT}/0",
 )
 
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
-SENDER_EMAIL = config.email.login
-PASSWORD = config.email.password
+SENDER_EMAIL = config.email.LOGIN
+PASSWORD = config.email.PASSWORD
 
 
 @app.task
 def send_email_message(to_email: str, username: str):
+    if SENDER_EMAIL == "" or PASSWORD == "":
+        raise ConflictError("email login or email password is empty")
     # 1. Создание сообщения
     msg = MIMEMultipart()
     msg["From"] = SENDER_EMAIL

@@ -16,14 +16,13 @@ from core.database import get_db
 from core.enums import RoleEnum
 from core.exceptions import ForbiddenError, NotFoundError, UnauthorizedError
 from core.settings import config
-from core.settings import config as Config
 from models.user_model import User
 from repository.user_repo import UserRepository
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 redis_client = redis.Redis(
-    host=config.redis.host, port=config.redis.port, db=1, decode_responses=True
+    host=config.redis.HOST, port=config.redis.PORT, db=1, decode_responses=True
 )
 
 
@@ -48,10 +47,10 @@ class JWTUser(BaseModel):
 JWTHarmony.configure(
     JWTUser,
     {
-        "secret_key": Config.security.secret_key,
-        "algorithm": Config.security.algorithm,
-        "access_token_expires": timedelta(minutes=Config.security.access_token_expires),
-        "refresh_token_expires": timedelta(days=Config.security.refresh_token_expires),
+        "secret_key": config.security.SECRET_KEY,
+        "algorithm": config.security.ALGORITHM,
+        "access_token_expires": timedelta(minutes=config.security.ACCESS_TOKEN_EXPIRES),
+        "refresh_token_expires": timedelta(days=config.security.REFRESH_TOKEN_EXPIRES),
         "token_location": {"headers"},
         "header_name": "Authorization",
         "header_type": "Bearer",

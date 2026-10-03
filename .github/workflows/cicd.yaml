@@ -15,6 +15,31 @@ jobs:
           run: uv run --directory backend ruff check ./src ./tests
         - name: 'Check error with ty'
           run: uv run --directory backend ty check ./src ./tests
-    # test:
-    #   runs-on: ubuntu-latest
-    #   services:
+    test:
+      runs-on: ubuntu-latest
+      environment: 'test'
+      services:
+        postgres:
+          image: postgres:16-alpine
+          env:
+            POSTGRESS_PASSWORD: ${{ secrets.pg_pass }}
+            POSTGRES_USER: ${{ secrets.pg_user }}
+            POSTGRES_DB: ${{ vars.pg_db }}
+          ports: 
+            - 5432:5432
+          options: --health-cmd pg_isready --health-interval 10s  --health-timeout 5s --health-retries 5
+        redis:
+          image: redis:8-alpine
+          ports:
+            - 6137:6137
+      steps:
+        - uses: actions/checkout@v7
+        - name: 'Install uv'
+          uses: astral-sh/setup-uv@v5
+        - name: 'Run test'
+          env:
+            DB_NAME: ${{ vars.pg_db }}
+            DB_TEST_NAME: ${{ vars.pg_db }}
+            DB_USER: ${{ secrets.pg_user }}
+            DB_PASSWORD: ${{ secrets.pg_pass }}
+          run: uv run --directory backend pytest

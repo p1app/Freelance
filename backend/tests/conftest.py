@@ -12,7 +12,7 @@ import main
 from core.database import Base, get_db
 from core.settings import config
 
-TEST_URL = config.test_db.get_db_url()
+TEST_URL = config.db.get_test_url()
 
 test_engine = create_async_engine(TEST_URL, poolclass=NullPool)
 TestSession = async_sessionmaker(test_engine, expire_on_commit=False)

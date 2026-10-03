@@ -1,5 +1,10 @@
+# Назовем этот файл, например, src/core/config.py
+import sys
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+IS_TESTING = "pytest" in sys.modules or "pytest" in sys.argv
 
 
 class ConfigBase(BaseSettings):
@@ -12,58 +17,39 @@ class ConfigBase(BaseSettings):
 
 
 class DatabaseConfig(ConfigBase):
-    model_config = SettingsConfigDict(env_prefix="db_")
-
-    host: str
-    port: int
-    name: str
-    user: str
-    password: str
-
-    def get_db_url(self):
-        return (
-            f"postgresql+asyncpg://{self.user}:{self.password}@"
-            f"{self.host}:{self.port}/{self.name}"
-        )
-
-
-class TestDatabaseConfig(ConfigBase):
-    model_config = SettingsConfigDict(env_prefix="test_db_")
-
-    host: str
-    port: int
-    name: str
-    user: str
-    password: str
+    model_config = SettingsConfigDict(env_prefix="DB_")
+    HOST: str
+    PORT: int
+    NAME: str
+    USER: str
+    PASSWORD: str
+    TEST_NAME: str = Field(default="freelance_test")
 
     def get_db_url(self):
-        return (
-            f"postgresql+asyncpg://{self.user}:{self.password}@"
-            f"{self.host}:{self.port}/{self.name}"
-        )
+        return f"postgresql+asyncpg://{self.USER}:{self.PASSWORD}@{self.HOST}:{self.PORT}/{self.NAME}"
+
+    def get_test_url(self):
+        return f"postgresql+asyncpg://{self.USER}:{self.PASSWORD}@{self.HOST}:{self.PORT}/{self.TEST_NAME}"
 
 
 class SecurityConfig(ConfigBase):
-    algorithm: str
-    secret_key: str
-    access_token_expires: int
-    refresh_token_expires: int
-
-    model_config = SettingsConfigDict(env_prefix="sec_")
+    model_config = SettingsConfigDict(env_prefix="SEC_")
+    ALGORITHM: str
+    SECRET_KEY: str
+    ACCESS_TOKEN_EXPIRES: int
+    REFRESH_TOKEN_EXPIRES: int
 
 
 class EmailConfig(ConfigBase):
-    login: str
-    password: str
-
-    model_config = SettingsConfigDict(env_prefix="email_")
+    model_config = SettingsConfigDict(env_prefix="EMAIL_")
+    LOGIN: str = Field(default="")
+    PASSWORD: str = Field(default="")
 
 
 class RedisConfig(ConfigBase):
-    host: str
-    port: int
-
-    model_config = SettingsConfigDict(env_prefix="redis_")
+    model_config = SettingsConfigDict(env_prefix="REDIS_")
+    HOST: str
+    PORT: int
 
 
 class Config(BaseSettings):
@@ -71,7 +57,6 @@ class Config(BaseSettings):
     security: SecurityConfig = Field(default_factory=SecurityConfig)
     email: EmailConfig = Field(default_factory=EmailConfig)
     redis: RedisConfig = Field(default_factory=RedisConfig)
-    test_db: TestDatabaseConfig = Field(default_factory=TestDatabaseConfig)
 
 
 config = Config()
