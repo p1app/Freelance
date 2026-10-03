@@ -43,4 +43,6 @@ jobs:
             DB_TEST_NAME: ${{ vars.pg_db }}
             DB_USER: ${{ secrets.pg_user }}
             DB_PASSWORD: ${{ secrets.pg_pass }}
+            DB_HOST: ${{ vars.DB_HOST }}
+            DB_PORT: ${{ vars.DB_PORT }}
           run: uv run --directory backend pytest
