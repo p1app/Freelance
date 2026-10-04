@@ -1,7 +1,0 @@
-# Для workflow 
-[tool.ty.analysis]
-respect-type-ignore-comments = true
-
-[tool.ty.environment]
-# Указываем ty, что корень исходного кода лежит в папке src
-root = ["./backend/src"]

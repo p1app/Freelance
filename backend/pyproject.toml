@@ -28,8 +28,6 @@ dev = [
     "pytest>=9.1.1",
     "ruff>=0.16.8",
     "pytest-asyncio>=1.4.0",
-    "httpx2>=2.13.1",
-    "anyio>=4.14.2",
     "ty>=0.0.84",
 ]
 
@@ -60,5 +58,4 @@ exclude = [
 respect-type-ignore-comments = true
 
 [tool.ty.environment]
-# Указываем ty, что корень исходного кода лежит в папке src
 root = ["./src"]

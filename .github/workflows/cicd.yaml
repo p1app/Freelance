@@ -3,6 +3,9 @@ on:
   workflow_dispatch:
   push:
     branches: main
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   lint:
@@ -11,14 +14,25 @@ jobs:
       - uses: actions/checkout@v7
       - name: 'Install uv'
         uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          enable-cache: true
+      - name: 'uv sync'
+        run: uv sync --dev --frozen
       - name: 'Linting with ruff'
         run: uv run --directory backend ruff check ./src ./tests
       - name: 'Check error with ty'
         run: uv run --directory backend ty check ./src ./tests
+
+
   test:
     runs-on: ubuntu-22.04
     needs: lint
     environment: 'test'
+    env:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     services:
       postgres:
         image: postgres:16-alpine
@@ -28,21 +42,31 @@ jobs:
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
         ports: 
           - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s  --health-timeout 5s --health-retries 5
+        options: --health-cmd pg_isready -U admin -d freelance --health-interval 10s  --health-timeout 5s --health-retries 5
       redis:
         image: redis:8-alpine
         ports:
           - 6379:6379
+        options:
+          --health-cmd redis-cli ping --health-interval 1m30s --health-timeout 30s --health-retries 5
+
     steps:
       - uses: actions/checkout@v7
       - name: 'Create env_file'
+        env:
+          API_ENV_CONTENT: ${{ secrets.API_ENV_FILE }}
         run: |
-          touch ./backend/.env
-          echo '${{ secrets.API_ENV_FILE }}' > ./backend/.env
+          printf '%s' "$API_ENV_CONTENT" > ./backend/.env
       - name: 'Install uv'
         uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          enable-cache: true
+      - name: 'uv sync'
+        run: uv sync --dev --frozen
       - name: 'Run test'
         run: uv run --directory backend pytest
+  
+  
   build-and-push:
     env:
       REGISTRY_GITHUB: ghcr.io
@@ -58,7 +82,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-      security-events: write
     needs: [test, lint]
     steps:
       - uses: actions/checkout@v7
@@ -72,7 +95,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Login in docker.io
         uses: docker/login-action@v4
-        continue-on-error: true
         with:
           registry: ${{ env.REGISTRY_DOCKERHUB }}
           username: ${{ secrets.DOCKER_USERNAME}}
