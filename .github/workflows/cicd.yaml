@@ -5,41 +5,94 @@ on:
     branches: main
 
 jobs:
-    lint:
-      runs-on: ubuntu-22.04
-      steps:
-        - uses: actions/checkout@v7
-        - name: 'Install uv'
-          uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
-        - name: 'Linting with ruff'
-          run: uv run --directory backend ruff check ./src ./tests
-        - name: 'Check error with ty'
-          run: uv run --directory backend ty check ./src ./tests
-    test:
-      runs-on: ubuntu-22.04
-      needs: lint
-      environment: 'test'
-      services:
-        postgres:
-          image: postgres:16-alpine
-          env:
-            POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASS }}
-            POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-            POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-          ports: 
-            - 5432:5432
-          options: --health-cmd pg_isready --health-interval 10s  --health-timeout 5s --health-retries 5
-        redis:
-          image: redis:8-alpine
-          ports:
-            - 6379:6379
-      steps:
-        - uses: actions/checkout@v7
-        - name: 'Create env_file'
-          run: |
-            touch ./backend/.env
-            echo '${{ secrets.API_ENV_FILE }}' > ./backend/.env
-        - name: 'Install uv'
-          uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
-        - name: 'Run test'
-          run: uv run --directory backend pytest
+  lint:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: 'Install uv'
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+      - name: 'Linting with ruff'
+        run: uv run --directory backend ruff check ./src ./tests
+      - name: 'Check error with ty'
+        run: uv run --directory backend ty check ./src ./tests
+  test:
+    runs-on: ubuntu-22.04
+    needs: lint
+    environment: 'test'
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASS }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        ports: 
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s  --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v7
+      - name: 'Create env_file'
+        run: |
+          touch ./backend/.env
+          echo '${{ secrets.API_ENV_FILE }}' > ./backend/.env
+      - name: 'Install uv'
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+      - name: 'Run test'
+        run: uv run --directory backend pytest
+  build-and-push_backend:
+    env:
+      IMAGE_NAME: p1app/backend
+      REGISTRY_GITHUB: ghcr.io
+      REGISTRY_DOCKERHUB: docker.io
+
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+    needs: [test, lint]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up docker buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Login in ghcr
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY_GITHUB }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login in docker.io
+        uses: docker/login-action@v3
+        continue-on-error: true
+        with:
+          registry: ${{ env.REGISTRY_DOCKERHUB }}
+          username: ${{ secrets.DOCKER_USERNAME}}
+          password: ${{ secrets.DOCKER_TOKEN }}
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: |
+            ${{ env.REGISTRY_GITHUB }}/${{ env.IMAGE_NAME }}
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=tag
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest,enable={{is_default_branch}}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: ./backend
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

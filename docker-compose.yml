@@ -1,6 +1,6 @@
 services:
   backend:
-    build: ./backend/.
+    image: p1app/freelance_backend
     container_name: backend
     ports:
       - "8000"
@@ -24,10 +24,10 @@ services:
         condition: service_healthy
 
   frontend:
-    build: ./frontend/.
+    build: p1app/freelance_frontend
     container_name: frontend
     ports:
-      - "5173:5173"
+      - "5173:80"
     env_file:
       - docker/env/frontend.env
     restart: unless-stopped
