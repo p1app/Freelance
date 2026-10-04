@@ -30,9 +30,9 @@ jobs:
     needs: lint
     environment: 'test'
     env:
-      DB_HOST: postgres
+      DB_HOST: localhost
       DB_PORT: 5432
-      REDIS_HOST: redis
+      REDIS_HOST: localhost
       REDIS_PORT: 6379
     services:
       postgres:
