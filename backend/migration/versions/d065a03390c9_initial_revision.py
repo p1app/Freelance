@@ -1,8 +1,8 @@
 """Initial revision
 
-Revision ID: 10e9dec9b958
+Revision ID: d065a03390c9
 Revises: 
-Create Date: 2026-09-19 18:25:27.832629
+Create Date: 2026-10-05 00:40:00.486693
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '10e9dec9b958'
+revision: str = 'd065a03390c9'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -29,7 +29,7 @@ def upgrade() -> None:
     sa.Column('fullname', sa.String(length=255), nullable=False),
     sa.Column('bio', sa.String(), nullable=True),
     sa.Column('skills', sa.ARRAY(sa.String()), nullable=True),
-    sa.Column('rating', sa.Float(), nullable=False),
+    sa.Column('rating', sa.Double(), nullable=False),
     sa.Column('completed_projects', sa.Integer(), server_default='0', nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
@@ -128,6 +128,23 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_milestones_contract_id'), 'milestones', ['contract_id'], unique=False)
+    op.create_table('notifications',
+    sa.Column('type', sa.Enum('PROPOSAL', 'MESSAGE', 'CONTRACT', 'MILESTONE', 'REVIEW', 'SYSTEM', name='notificationtypeenum'), nullable=False),
+    sa.Column('to_user_id', sa.Integer(), nullable=False),
+    sa.Column('description', sa.String(), nullable=False),
+    sa.Column('is_read', sa.Boolean(), nullable=False),
+    sa.Column('contract_id', sa.Integer(), nullable=True),
+    sa.Column('project_id', sa.Integer(), nullable=True),
+    sa.Column('from_user_id', sa.Integer(), nullable=True),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.ForeignKeyConstraint(['contract_id'], ['contracts.id'], ),
+    sa.ForeignKeyConstraint(['from_user_id'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ),
+    sa.ForeignKeyConstraint(['to_user_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('reviews',
     sa.Column('contract_id', sa.Integer(), nullable=False),
     sa.Column('from_user_id', sa.Integer(), nullable=False),
@@ -157,6 +174,7 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_reviews_from_user_id'), table_name='reviews')
     op.drop_index(op.f('ix_reviews_contract_id'), table_name='reviews')
     op.drop_table('reviews')
+    op.drop_table('notifications')
     op.drop_index(op.f('ix_milestones_contract_id'), table_name='milestones')
     op.drop_table('milestones')
     op.drop_index(op.f('ix_chat_messages_sender_id'), table_name='chat_messages')
