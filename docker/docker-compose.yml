@@ -24,7 +24,7 @@ services:
         condition: service_healthy
 
   frontend:
-    build: p1app/freelance_frontend
+    image: p1app/freelance_frontend
     container_name: frontend
     ports:
       - "5173:80"
@@ -41,7 +41,7 @@ services:
     container_name: worker
     entrypoint: []
     env_file:
-      - docker/env/backend.env
+      - env/backend.env
     environment:
       - PYTHONPATH=src
     command: [ "uv", "run", "celery", "-A", "core.email_message", "worker", "-l", "INFO" ]
