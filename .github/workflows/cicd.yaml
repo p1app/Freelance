@@ -45,7 +45,7 @@ jobs:
         run: uv run --directory backend pytest
   build-and-push_backend:
     env:
-      IMAGE_NAME: p1app/backend
+      IMAGE_NAME: p1app/freelance_backend
       REGISTRY_GITHUB: ghcr.io
       REGISTRY_DOCKERHUB: docker.io
 
