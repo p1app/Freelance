@@ -43,12 +43,17 @@ jobs:
         uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
       - name: 'Run test'
         run: uv run --directory backend pytest
-  build-and-push_backend:
+  build-and-push:
     env:
-      IMAGE_NAME: p1app/freelance_backend
       REGISTRY_GITHUB: ghcr.io
       REGISTRY_DOCKERHUB: docker.io
-
+    strategy:
+      matrix:
+        include:
+          - build-directory: backend
+            IMAGE_NAME: p1app/freelance_backend
+          - build-directory: frontend
+            IMAGE_NAME: p1app/freelance_frontend
     runs-on: ubuntu-22.04
     permissions:
       contents: read
@@ -66,7 +71,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Login in docker.io
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         continue-on-error: true
         with:
           registry: ${{ env.REGISTRY_DOCKERHUB }}
@@ -77,8 +82,8 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: |
-            ${{ env.REGISTRY_GITHUB }}/${{ env.IMAGE_NAME }}
-            ${{ env.REGISTRY_DOCKERHUB }}/${{ env.IMAGE_NAME }}
+            ${{ env.REGISTRY_GITHUB }}/${{ matrix.IMAGE_NAME }}
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.IMAGE_NAME }}
           tags: |
             type=ref,event=tag
             type=ref,event=branch
@@ -89,8 +94,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v7
         with:
-          context: ./backend
-          file: ./backend/Dockerfile
+          context: ./${{ matrix.build-directory }}
+          file: ./${{ matrix.build-directory }}/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
