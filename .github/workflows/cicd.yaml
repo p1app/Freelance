@@ -8,12 +8,9 @@ jobs:
     lint:
       runs-on: ubuntu-22.04
       steps:
-        - uses: actions/setup-node@v7
-          with: 
-            node-version: 24 # обновим так как setup-uv action работает на node 
         - uses: actions/checkout@v7
         - name: 'Install uv'
-          uses: astral-sh/setup-uv@v5
+          uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
         - name: 'Linting with ruff'
           run: uv run --directory backend ruff check ./src ./tests
         - name: 'Check error with ty'
@@ -37,15 +34,12 @@ jobs:
           ports:
             - 6379:6379
       steps:
-        - uses: actions/setup-node@v7
-          with: 
-            node-version: 24 # обновим так как setup-uv action работает на node 
         - uses: actions/checkout@v7
         - name: 'Create env_file'
           run: |
             touch ./backend/.env
             echo '${{ secrets.API_ENV_FILE }}' > ./backend/.env
         - name: 'Install uv'
-          uses: astral-sh/setup-uv@v5
+          uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
         - name: 'Run test'
           run: uv run --directory backend pytest
