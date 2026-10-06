@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
 from core.exceptions import AppException
-from core.health_db import health_db_func
+from core.health_func import health_db, health_redis
 from routers.admin_router import router as admin_router
 from routers.auth_router import router as auth_router
 from routers.chat_router import router as chat_router
@@ -33,10 +33,11 @@ app.add_middleware(
         "http://localhost:5173",  # ← Vite dev
         "http://127.0.0.1:5173",
         "http://frontend:5173",
+        "http://prometheus:9090",
     ],
     allow_credentials=True,
-    allow_methods=["*"],  # ← разрешает OPTIONS, POST, GET, PUT, DELETE, PATCH
-    allow_headers=["*"],  # ← разрешает Authorization, Content-Type
+    allow_methods=["*"],  # ← разрешает все методы
+    allow_headers=["*"],  # ← разрешает все заголовки
 )
 
 Instrumentator().instrument(app).expose(app)
@@ -61,8 +62,8 @@ def root():
 
 
 @app.get("/health", tags=["main"])
-async def health(db: Annotated[AsyncSession, Depends(get_db)]):
-    if await health_db_func(db):
+async def health_endpoint(db: Annotated[AsyncSession, Depends(get_db)]):
+    if await health_db(session=db) and await health_redis():
         return "The application is ready"
     else:
         raise HTTPException(status_code=503, detail="database is not ready")
