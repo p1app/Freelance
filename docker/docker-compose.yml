@@ -11,10 +11,10 @@ services:
       - freelance
     healthcheck:
       test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" ]
-      interval: 1m30s
+      interval: 10s
       timeout: 30s
       retries: 5
-      start_period: 30s
+      start_period: 15s
     depends_on:
       worker:
         condition: service_started
@@ -44,7 +44,7 @@ services:
       - env/backend.env
     environment:
       - PYTHONPATH=src
-    command: [ "uv", "run", "celery", "-A", "core.email_message", "worker", "-l", "INFO" ]
+    command: [ "uv", "run", "--frozen", "--no-group", "dev", "celery", "-A", "core.email_message", "worker", "-l", "INFO" ]
     restart: unless-stopped
     networks:
       - freelance
@@ -65,8 +65,8 @@ services:
       - pgdata:/var/lib/postgresql
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U admin -d freelance" ]
-      interval: 1m30s
-      timeout: 30s
+      interval: 10s
+      timeout: 5s
       retries: 5
       start_period: 30s
 
@@ -79,10 +79,10 @@ services:
       - 6379
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
-      interval: 1m30s
+      interval: 10s
       timeout: 30s
       retries: 5
-      start_period: 30s
+      start_period: 10s
   prometheus:
     image: prom/prometheus:v3.15.0
     container_name: prometheus
