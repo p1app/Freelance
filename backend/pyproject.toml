@@ -19,7 +19,7 @@ dependencies = [
     "fastapi-jwt-harmony>=0.3.1",
     "celery>=5.6.3",
     "redis>=8.1.0",
-
+    "prometheus-fastapi-instrumentator>=8.1.0",
 ]
 
 [dependency-groups]

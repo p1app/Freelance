@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
 from fastapi_jwt_harmony import JWTHarmonyException
+from prometheus_fastapi_instrumentator import Instrumentator
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -37,6 +38,8 @@ app.add_middleware(
     allow_methods=["*"],  # ← разрешает OPTIONS, POST, GET, PUT, DELETE, PATCH
     allow_headers=["*"],  # ← разрешает Authorization, Content-Type
 )
+
+Instrumentator().instrument(app).expose(app)
 
 app.include_router(auth_router)
 app.include_router(user_router)
