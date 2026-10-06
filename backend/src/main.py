@@ -111,9 +111,11 @@ async def jwt_exc_handler(request, exc):
 
 if __name__ == "__main__":
     uvicorn.run(
-        "main:app",
-        reload=True,
+        app="main:app",
         port=8000,
+        log_level="info",
         host="0.0.0.0",
         access_log=False,
+        proxy_headers=True,
+        forwarded_allow_ips="*",
     )

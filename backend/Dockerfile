@@ -19,4 +19,4 @@ COPY --chown=appuser:appuser src/ ./src
 EXPOSE 8000
 
 ENTRYPOINT ["/bin/bash", "/backend/entrypoint.sh"]
-CMD ["uv", "run", "src/main.py"]
+CMD ["uv", "run", "--frozen", "--no-group", "dev", "src/main.py"]
