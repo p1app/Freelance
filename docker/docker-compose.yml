@@ -94,6 +94,19 @@ services:
       - ./prometheus_data/prometheus.yml:/etc/prometheus/prometheus.yml
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
+  
+  node-exporter:
+    image: prom/node-exporter:v1-distroless
+    container_name: node-exporter
+    networks:
+      - freelance
+    expose:
+      - 9100
+    pid: "host"
+    volumes:
+      - /:/host:ro, rslave
+    command:
+      - '--path.rootfs=/host'
 
 
   grafana:
