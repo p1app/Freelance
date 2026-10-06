@@ -91,7 +91,7 @@ services:
     expose:
       - 9090
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
     depends_on:
@@ -104,7 +104,7 @@ services:
     networks:
       - freelance
     volumes:
-      - ./grafana/:/var/lib/grafana
+      - monitoring/grafana/:/var/lib/grafana
     ports:
       - "3000:3000"
     depends_on:
@@ -116,18 +116,12 @@ networks:
     driver: bridge
 
 volumes:
-  prometheus:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: ./prometheus
   grafana:
     driver: local
     driver_opts:
       o: bind
       type: none
-      device: ./grafana
+      device: ./monitoring/grafana
   pgdata:
     name: freelance_pgdata
     # external: true
