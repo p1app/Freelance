@@ -28,7 +28,6 @@ from routers.user_router import router as user_router
 from routers.ws_router import router as ws_router
 
 app = FastAPI(swagger_ui_parameters={"defaultModelsExpandDepth": -1})
-app.add_middleware(fastapi_structured_logging.AccessLogMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -41,6 +40,7 @@ app.add_middleware(
     allow_methods=["*"],  # ← разрешает все методы
     allow_headers=["*"],  # ← разрешает все заголовки
 )
+app.add_middleware(fastapi_structured_logging.AccessLogMiddleware)
 
 # Определение prometheus instrumentator
 Instrumentator().instrument(app).expose(app)

@@ -7,10 +7,10 @@ loki.write "default" {
 discovery.docker "docker_containers" {
   host = "unix:///var/run/docker.sock"
   refresh_interval = "5s"
-   filter {
-      name   = "backend"
-      values = ["logging=enabled"]
-  }
+  // filter {
+  //    name   = "backend"
+  //    values = ["logging=enabled"]
+  //}
 }
 
 discovery.relabel "docker_containers" {
