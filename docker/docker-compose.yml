@@ -22,6 +22,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      loki:
+        condition: service_started
 
   frontend:
     image: p1app/freelance_frontend
@@ -119,8 +121,30 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
 
+  loki:
+    image: grafana/loki:3.0.0
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki-config.yml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+
+  alloy:
+    image: grafana/alloy:latest
+    ports:
+      - "12345:12345"  
+    volumes:
+      - ./alloy-config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - alloy-data:/var/lib/alloy
+    command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+    depends_on:
+      - loki
 
 volumes:
+  loki_data:
+  alloy-data:
   prometheus_data:
     driver: local
     driver_opts:
