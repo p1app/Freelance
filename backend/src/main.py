@@ -1,5 +1,6 @@
 from typing import Annotated
 
+import fastapi_structured_logging
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
@@ -27,6 +28,7 @@ from routers.user_router import router as user_router
 from routers.ws_router import router as ws_router
 
 app = FastAPI(swagger_ui_parameters={"defaultModelsExpandDepth": -1})
+app.add_middleware(fastapi_structured_logging.AccessLogMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -40,7 +42,12 @@ app.add_middleware(
     allow_headers=["*"],  # ← разрешает все заголовки
 )
 
+# Определение prometheus instrumentator
 Instrumentator().instrument(app).expose(app)
+
+# Опеределение logger'a
+fastapi_structured_logging.setup_logging()
+logger = fastapi_structured_logging.get_logger()
 
 app.include_router(auth_router)
 app.include_router(user_router)
@@ -113,8 +120,8 @@ if __name__ == "__main__":
     uvicorn.run(
         app="main:app",
         port=8000,
-        log_level="info",
         host="0.0.0.0",
+        log_config=None,
         access_log=False,
         proxy_headers=True,
         forwarded_allow_ips="*",
