@@ -123,6 +123,7 @@ services:
 
   loki:
     image: grafana/loki:3.0.0
+    container_name: loki
     ports:
       - "3100:3100"
     volumes:
@@ -132,6 +133,7 @@ services:
 
   alloy:
     image: grafana/alloy:latest
+    container_name: grafana-alloy
     ports:
       - "12345:12345"  
     volumes:
@@ -155,11 +157,7 @@ volumes:
       device: ./prometheus_data
 
   grafana_data:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: ./grafana_data
+    name: grafana_data
 
   pgdata:
     name: freelance_pgdata
