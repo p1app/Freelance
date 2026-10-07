@@ -27,9 +27,14 @@ from routers.review_router import router as review_router
 from routers.user_router import router as user_router
 from routers.ws_router import router as ws_router
 
+# Опеределение logger'a
+config = fastapi_structured_logging.AccessLogConfig(log_level="info")
+fastapi_structured_logging.setup_logging()
+logger = fastapi_structured_logging.get_logger()
+
 app = FastAPI(swagger_ui_parameters={"defaultModelsExpandDepth": -1})
 app.add_middleware(
-    CORSMiddleware,
+    middleware_class=CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",  # ← Vite dev
         "http://127.0.0.1:5173",
@@ -40,14 +45,13 @@ app.add_middleware(
     allow_methods=["*"],  # ← разрешает все методы
     allow_headers=["*"],  # ← разрешает все заголовки
 )
-app.add_middleware(fastapi_structured_logging.AccessLogMiddleware)
+app.add_middleware(
+    middleware_class=fastapi_structured_logging.AccessLogMiddleware, config=config
+)
 
 # Определение prometheus instrumentator
 Instrumentator().instrument(app).expose(app)
 
-# Опеределение logger'a
-fastapi_structured_logging.setup_logging()
-logger = fastapi_structured_logging.get_logger()
 
 app.include_router(auth_router)
 app.include_router(user_router)
