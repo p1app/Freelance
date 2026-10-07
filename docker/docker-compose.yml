@@ -127,7 +127,7 @@ services:
       - "3100:3100"
     volumes:
       - ./loki-config.yml:/etc/loki/local-config.yaml
-      - loki-data:/loki
+      - loki_data:/loki
     command: -config.file=/etc/loki/local-config.yaml
 
   alloy:
@@ -137,28 +137,30 @@ services:
     volumes:
       - ./alloy-config.alloy:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - alloy-data:/var/lib/alloy
+      - alloy_data:/var/lib/alloy
     command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
     depends_on:
       - loki
 
 volumes:
   loki_data:
-  alloy-data:
+    name: loki_freelance_data
+  alloy_data:
+    name: alloy_freelance_data
   prometheus_data:
     driver: local
     driver_opts:
       o: bind
       type: none
       device: ./prometheus_data
-  
+
   grafana_data:
     driver: local
     driver_opts:
       o: bind
       type: none
       device: ./grafana_data
-  
+
   pgdata:
     name: freelance_pgdata
     # external: true
