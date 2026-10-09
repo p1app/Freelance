@@ -38,7 +38,6 @@ class SecurityConfig(ConfigBase):
     SECRET_KEY: str
     ACCESS_TOKEN_EXPIRES: int
     REFRESH_TOKEN_EXPIRES: int
-    TOKEN_TYPE: str
 
 
 class EmailConfig(ConfigBase):
