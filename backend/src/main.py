@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import get_db
 from core.exceptions import AppException
 from core.health_func import health_db, health_redis
+from core.settings import config
 from routers.admin_router import router as admin_router
 from routers.auth_router import router as auth_router
 from routers.chat_router import router as chat_router
@@ -28,7 +29,7 @@ from routers.user_router import router as user_router
 from routers.ws_router import router as ws_router
 
 # Опеределение logger'a
-config = fastapi_structured_logging.AccessLogConfig(log_level="info")
+log_config = fastapi_structured_logging.AccessLogConfig(log_level="info")
 fastapi_structured_logging.setup_logging()
 logger = fastapi_structured_logging.get_logger()
 
@@ -46,7 +47,7 @@ app.add_middleware(
     allow_headers=["*"],  # ← разрешает все заголовки
 )
 app.add_middleware(
-    middleware_class=fastapi_structured_logging.AccessLogMiddleware, config=config
+    middleware_class=fastapi_structured_logging.AccessLogMiddleware, config=log_config
 )
 
 # Определение prometheus instrumentator
@@ -123,8 +124,8 @@ async def jwt_exc_handler(request, exc):
 if __name__ == "__main__":
     uvicorn.run(
         app="main:app",
-        port=8000,
-        host="0.0.0.0",
+        port=config.application.PORT,
+        host=config.application.HOST,
         log_config=None,
         access_log=False,
         proxy_headers=True,

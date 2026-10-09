@@ -20,7 +20,7 @@ PASSWORD = config.email.PASSWORD
 
 @app.task
 def send_email_message(to_email: str, username: str):
-    if SENDER_EMAIL == "" or PASSWORD == "":
+    if SENDER_EMAIL is None or PASSWORD is None:
         raise ConflictError("email login or email password is empty")
     # 1. Создание сообщения
     msg = MIMEMultipart()

@@ -38,16 +38,23 @@ class SecurityConfig(ConfigBase):
     SECRET_KEY: str
     ACCESS_TOKEN_EXPIRES: int
     REFRESH_TOKEN_EXPIRES: int
+    TOKEN_TYPE: str
 
 
 class EmailConfig(ConfigBase):
     model_config = SettingsConfigDict(env_prefix="EMAIL_")
-    LOGIN: str = Field(default="")
-    PASSWORD: str = Field(default="")
+    LOGIN: str | None = Field(default=None)
+    PASSWORD: str | None = Field(default=None)
 
 
 class RedisConfig(ConfigBase):
     model_config = SettingsConfigDict(env_prefix="REDIS_")
+    HOST: str
+    PORT: int
+
+
+class ApplicationCnfig(ConfigBase):
+    model_config = SettingsConfigDict(env_prefix="APP_")
     HOST: str
     PORT: int
 
@@ -57,6 +64,7 @@ class Config(BaseSettings):
     security: SecurityConfig = Field(default_factory=SecurityConfig)
     email: EmailConfig = Field(default_factory=EmailConfig)
     redis: RedisConfig = Field(default_factory=RedisConfig)
+    application: ApplicationCnfig = Field(default_factory=ApplicationCnfig)
 
 
 config = Config()

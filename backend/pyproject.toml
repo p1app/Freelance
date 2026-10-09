@@ -30,6 +30,7 @@ dev = [
     "pytest-asyncio>=1.4.0",
     "ty>=0.0.84",
     "httpx2>=2.13.1",
+    "bandit>=1.9.4",
 ]
 
 
