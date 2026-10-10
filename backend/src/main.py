@@ -30,8 +30,8 @@ from routers.ws_router import router as ws_router
 
 # Опеределение logger'a
 log_config = fastapi_structured_logging.AccessLogConfig(log_level="info")
-# fastapi_structured_logging.setup_logging()
-# logger = fastapi_structured_logging.get_logger()
+fastapi_structured_logging.setup_logging()
+logger = fastapi_structured_logging.get_logger()
 
 app = FastAPI(swagger_ui_parameters={"defaultModelsExpandDepth": -1})
 app.add_middleware(
@@ -126,8 +126,8 @@ if __name__ == "__main__":
         app="main:app",
         port=config.application.PORT,
         host=config.application.HOST,
-        # log_config=None,
-        # access_log=False,
+        log_config=None,
+        access_log=False,
         proxy_headers=True,
         forwarded_allow_ips="*",
     )
