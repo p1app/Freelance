@@ -11,7 +11,7 @@ TRUNCATE TABLE notifications, chat_messages, reviews, milestones,
 INSERT INTO users (id, email, username, hashed_password, role, fullname, bio,
                    skills, rating, completed_projects, is_active, created_at, updated_at)
 VALUES
-    (1, 'admin@freelance.local', 'admin',
+    (1, 'admin@freelance.com', 'admin',
      '$argon2id$v=19$m=65536,t=3,p=4$oHRuTQlhrJUSgvB+j7E2hg$Qj5UOtSluwoMKu0nlFG6vZww70hFJMDJccVPqntNlek',
      'ADMIN'::roleenum, 'Администратор платформы',
      'Следит за порядком на платформе и блокирует нарушителей.',
