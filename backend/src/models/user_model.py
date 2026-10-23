@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ARRAY, String
+from sqlalchemy import ARRAY, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.database import Base
@@ -23,7 +23,7 @@ class User(Base):
     username: Mapped[str] = mapped_column(
         String(100), unique=True, index=True, nullable=False
     )
-    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    hashed_password: Mapped[str] = mapped_column(Text, nullable=False)
 
     role: Mapped[RoleEnum] = mapped_column(default=RoleEnum.CLIENT, nullable=False)
 
